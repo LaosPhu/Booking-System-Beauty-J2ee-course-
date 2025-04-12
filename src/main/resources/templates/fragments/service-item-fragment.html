@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="service-item(service=${service})" class="col-md-4">
+    <div id="ho_shad" class="services_box text_align_left">
+        <h3 th:text="${service.name}">Service Name</h3>
+        <figure><img src="images/service1.jpg" alt="#"/></figure>
+        <p th:text="${service.description}">Service Description</p>
+        <a class="read_more" href="service.html">Read More</a>
+    </div>
+</div>
+</html>
