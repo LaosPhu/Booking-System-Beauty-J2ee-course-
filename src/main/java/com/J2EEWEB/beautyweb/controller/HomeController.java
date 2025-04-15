@@ -33,7 +33,12 @@ public class HomeController {
         model.addAttribute("services", services);
         return "service"; // Render the Thymeleaf template
     }
-
+    @GetMapping("/booking")
+    public String booking(Model model) {
+        List<Service> services = serviceRepository.findAll();
+        model.addAttribute("services", services);
+        return "booking"; // Render the Thymeleaf template
+    }
     @GetMapping("/home")
     public String home() {
         return "redirect:/index.html";
