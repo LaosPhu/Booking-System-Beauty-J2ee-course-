@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <!-- style css -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Responsive-->
+  <link rel="stylesheet" href="/css/responsive.css"></head>
+<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+
+<body>
+<div th:fragment="sidebar" class="sidebar">
+  <ul>
+    <li class="nav-item"><a href="/profile/info"><i class="fa fa-user"></i>Profile</a></li>
+    <li class="nav-item"><a href="/profile/history"><i class="fa fa-history"></i>History</a></li>
+    <li class="nav-item"><a href="/profile/change"><i class="fa fa-lock"></i>Change Password</a></li>
+    <li class="nav-item"><a id="logoutButton" href="javascript:void(0);"><i class="fa fa-sign-out"></i>Logout</a>
+    </li>
+  </ul>
+</div>
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+           const logoutButton = document.getElementById('logoutButton');
+
+           if (logoutButton) {
+               logoutButton.addEventListener('click', function(event) {
+                   event.preventDefault();
+
+                   fetch('/api/user/logout', {
+                       method: 'GET'
+                   })
+                   .then(response => {
+                       if (response.ok) {
+                                   document.cookie = 'JSESSIONID=; Max-Age=0; path=/;'; // Replace with your cookie's path if needed
+
+                           window.location.href = '/';
+                       } else {
+                           console.error('Logout failed');
+                       }
+                   })
+                   .catch(error => {
+                       console.error('Error during logout:', error);
+                   });
+               });
+           }
+       });
+
+
+        const path = window.location.pathname;
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === path) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
+</html>

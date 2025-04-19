@@ -139,6 +139,7 @@ p {
     font-size: 17px;
     line-height: 28px;
     color: #2d2d2d;
+    padding-left:5px;
 }
 
 a {
@@ -315,6 +316,8 @@ button {
 .header-area {
     border-top: #fdc001 solid 40px;
     width: 100%;
+    border-bottom: #fdc001 solid 1px;
+
 }
 
 .logo a {
@@ -1224,3 +1227,69 @@ ul.social_icon li a i:hover {
 .portfolio_page .footer {
     margin-top: 60px;
 }
+/** profile **/
+.sidebar {
+    width: 250px;
+    background-color: #ffffff; /* Dark background from style.css */
+    border-right: 1px solid #fdc001; /* Yellow border from style.css */
+    padding: 20px 5px 10px 10px;
+    box-sizing: border-box;
+    height: 100vh;
+    float: left;
+}
+.sidebar i{
+    padding-right: 5px;
+}
+.sidebar h2 {
+    margin-bottom: 20px;
+    color: #fff; /* White heading color */
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+}
+.sidebar a.active {
+            background-color: #fdc001;
+            color: #000000;
+        }
+.sidebar a {
+    text-decoration: none;
+    color: #000000;
+    display: block;
+    width: 100%; /* Make the anchor take up the full width of its parent */
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding in the width */
+}
+
+.sidebar a:hover {
+    transition: ease-in all 0.5s;
+    background-color: #fdc001;
+}
+
+
+.profile-container {
+    display: flex;
+    height: 100vh;
+}
+
+.divider {
+    border-bottom: 1px solid #fdc001; /* Yellow divider */
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.content-wrapper {
+    flex: 1;
+}
+.main-content {
+     color: #000000; /* White text for contrast */
+     background-color: #ffffff; /* Match header background */
+     padding: 10px 0px 10px 0px; /* Add padding for spacing */
+ }
+/** end profile **/

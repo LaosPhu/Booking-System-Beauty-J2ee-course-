@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
    <!-- basic -->
    <meta charset="utf-8">
@@ -13,17 +13,17 @@
    <meta name="description" content="Bliss Spa Center offers premium spa services for relaxation and rejuvenation">
    <meta name="author" content="Bliss Spa">
    <!-- bootstrap css -->
-   <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+   <link rel="stylesheet" href="/css/bootstrap.min.css">
    <!-- style css -->
-   <link rel="stylesheet" href="../static/css/style.css">
+   <link rel="stylesheet" href="/css/style.css">
    <!-- Responsive-->
-   <link rel="stylesheet" href="../static/css/responsive.css">
+   <link rel="stylesheet" href="/css/responsive.css">
    <!-- favicon -->
    <link rel="icon" href="images/fevicon.png" type="image/gif" />
    <!-- Tweaks for older IEs-->
-   <link rel="stylesheet" href="../static/css/owl.carousel.min.css">
+   <link rel="stylesheet" href="/css/owl.carousel.min.css">
    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
-   <link rel="stylesheet" href="../static/css/bootstrap-datepicker.min.css">
+   <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
    <!--[if lt IE 9]>
    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
@@ -32,14 +32,19 @@
 <body class="main-layout">
 <!-- loader  -->
 <div class="loader_bg">
-   <div class="loader"><img src="../static/images/loading.gif" alt="Loading..."/></div>
+   <div class="loader"><img src="/images/loading.gif" alt="Loading..."/></div>
 </div>
 <!-- end loader -->
 <div class="full_bg">
    <!-- header -->
-   <header class="header-area">
-
-   </header>
+   <div id="header-container">
+      <th:block th:if="${isLoggedIn}">
+         <div th:replace="~{fragments/header-logged-in :: headerLoggedIn}"></div>
+      </th:block>
+      <th:block th:unless="${isLoggedIn}">
+         <div th:replace="~{fragments/header-logged-out :: headerLoggedOut}"></div>
+      </th:block>
+   </div>
    <!-- end header inner -->
    <!-- top -->
    <div class="slider_main">
@@ -68,17 +73,17 @@
                            <div class="row mar_right">
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img1.png" alt="Spa Treatment"/></figure>
+                                    <figure><img src="/images/img1.png" alt="Spa Treatment"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img2.png" alt="Massage Therapy"/></figure>
+                                    <figure><img src="/images/img2.png" alt="Massage Therapy"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
@@ -105,17 +110,17 @@
                            <div class="row mar_right">
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img1.png" alt="Wellness Treatment"/></figure>
+                                    <figure><img src="/images/img1.png" alt="Wellness Treatment"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img2.png" alt="Relaxation Area"/></figure>
+                                    <figure><img src="/images/img2.png" alt="Relaxation Area"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
@@ -142,17 +147,17 @@
                            <div class="row mar_right">
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img1.png" alt="Luxury Treatment"/></figure>
+                                    <figure><img src="/images/img1.png" alt="Luxury Treatment"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
                               <div class="col-md-6">
                                  <div class="agency">
-                                    <figure><img src="../static/images/img2.png" alt="Spa Products"/></figure>
+                                    <figure><img src="/images/img2.png" alt="Spa Products"/></figure>
                                     <div class="play_icon">
-                                       <a class="play-btn" href="javascript:void(0)"><img src="../static/images/play_icon.png" alt="Play Video"></a>
+                                       <a class="play-btn" href="javascript:void(0)"><img src="/images/play_icon.png" alt="Play Video"></a>
                                     </div>
                                  </div>
                               </div>
@@ -212,7 +217,7 @@
          <div class="col-md-4">
             <div id="ho_shad" class="services_box text_align_left">
                <h3>Ayurveda Spa</h3>
-               <figure><img src="../static/images/service1.jpg" alt="Ayurveda Spa"/></figure>
+               <figure><img src="/images/service1.jpg" alt="Ayurveda Spa"/></figure>
                <p>Experience ancient Ayurvedic treatments that balance your body's energies using natural herbs and oils for complete harmony and wellness.</p>
                <a class="read_more" href="../static/service.html">Learn More</a>
             </div>
@@ -220,7 +225,7 @@
          <div class="col-md-4">
             <div id="ho_shad" class="services_box text_align_left">
                <h3>Massage Therapy</h3>
-               <figure><img src="../static/images/service2.jpg" alt="Massage Therapy"/></figure>
+               <figure><img src="/images/service2.jpg" alt="Massage Therapy"/></figure>
                <p>Our expert therapists provide customized massage treatments to relieve stress, ease muscle tension, and promote deep relaxation.</p>
                <a class="read_more" href="../static/service.html">Learn More</a>
             </div>
@@ -228,9 +233,9 @@
          <div class="col-md-4">
             <div id="ho_shad" class="services_box text_align_left">
                <h3>Luxury Spa</h3>
-               <figure><img src="../static/images/service3.jpg" alt="Luxury Spa"/></figure>
+               <figure><img src="/images/service3.jpg" alt="Luxury Spa"/></figure>
                <p>Indulge in our premium luxury spa packages featuring exclusive treatments with the finest products for ultimate pampering.</p>
-               <a class="read_more" href="../static/service.html">Learn More</a>
+               <a class="read_more" href="/service.html">Learn More</a>
             </div>
          </div>
       </div>
@@ -291,18 +296,18 @@
       <div class="row d_flex">
          <div class="col-md-4">
             <div class="latest">
-               <figure><img src="../static/images/blog1.jpg" alt="Spa Benefits"/></figure>
+               <figure><img src="/images/blog1.jpg" alt="Spa Benefits"/></figure>
                <span>16 March</span>
                <div class="nostrud">
                   <h3>Benefits of Regular Spa Visits</h3>
                   <p>Discover how regular spa treatments can improve your physical health, mental wellbeing, and overall quality of life with our expert advice.</p>
-                  <a class="read_more" href="../static/blog.html">Read More</a>
+                  <a class="read_more" href="/blog.html">Read More</a>
                </div>
             </div>
          </div>
          <div class="col-md-4">
             <div class="latest">
-               <figure><img src="../static/images/blog2.jpg" alt="Massage Techniques"/></figure>
+               <figure><img src="/images/blog2.jpg" alt="Massage Techniques"/></figure>
                <span class="yellow">17 March</span>
                <div class="nostrud">
                   <h3>Different Massage Techniques</h3>
@@ -313,7 +318,7 @@
          </div>
          <div class="col-md-4">
             <div class="latest">
-               <figure><img src="../static/images/blog3.jpg" alt="Home Care"/></figure>
+               <figure><img src="/images/blog3.jpg" alt="Home Care"/></figure>
                <span>18 March</span>
                <div class="nostrud">
                   <h3>Self-Care at Home</h3>
@@ -332,7 +337,7 @@
       <div class="row d_flex grig">
          <div class="col-md-6">
             <div class="about_img">
-               <figure><img src="../static/images/about_img.jpg" alt="Our Spa Center"/>
+               <figure><img src="/images/about_img.jpg" alt="Our Spa Center"/>
                </figure>
             </div>
          </div>
@@ -374,7 +379,7 @@
                   <div class="row d_flex">
                      <div class="col-md-2 col-sm-8">
                         <div class="pro_file">
-                           <i><img src="../static/images/test2.png" alt="Sarah J."/></i>
+                           <i><img src="/images/test2.png" alt="Sarah J."/></i>
                            <h4>Sarah Johnson</h4>
                            <span>Regular Client</span>
                         </div>
@@ -394,7 +399,7 @@
                   <div class="row d_flex">
                      <div class="col-md-2 col-sm-8">
                         <div class="pro_file">
-                           <i><img src="../static/images/test2.png" alt="Michael T."/></i>
+                           <i><img src="/images/test2.png" alt="Michael T."/></i>
                            <h4>Michael Thompson</h4>
                            <span>First-time Visitor</span>
                         </div>
@@ -414,7 +419,7 @@
                   <div class="row d_flex">
                      <div class="col-md-2 col-sm-8">
                         <div class="pro_file">
-                           <i><img src="../static/images/test2.png" alt="Emily R."/></i>
+                           <i><img src="/images/test2.png" alt="Emily R."/></i>
                            <h4>Emily Roberts</h4>
                            <span>Couples Package</span>
                         </div>
@@ -520,11 +525,38 @@
 </footer>
 <!-- end footer -->
 <!-- Javascript files-->
-<script src="../static/js/jquery.min.js"></script>
-<script src="../static/js/bootstrap.bundle.min.js"></script>
-<script src="../static/js/jquery-3.0.0.min.js"></script>
-<script src="../static/js/owl.carousel.min.js"></script>
-<script src="../static/js/bootstrap-datepicker.min.js"></script>
-<script src="../static/js/custom.js"></script>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/jquery-3.0.0.min.js"></script>
+<script src="/js/owl.carousel.min.js"></script>
+<script src="/js/bootstrap-datepicker.min.js"></script>
+<script src="/js/custom.js"></script>
 </body>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+
+                    fetch('/api/user/logout', {
+                        method: 'GET'
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                                    document.cookie = 'JSESSIONID=; Max-Age=0; path=/;'; // Replace with your cookie's path if needed
+                            sessionStorage.clear();
+                            window.location.href = '/';
+                        } else {
+                            console.error('Logout failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during logout:', error);
+                    });
+                });
+            }
+        });
+</script>
 </html>

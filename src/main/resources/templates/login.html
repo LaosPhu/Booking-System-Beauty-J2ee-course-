@@ -160,7 +160,6 @@
         </div>
     </div>
 </div>
-
 <script>
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -192,27 +191,26 @@
             return;
         }
         // Use the provided API endpoint for authentication
-        fetch(`/api/user/getbyUsername/${username}`)  // Changed to the correct API endpoint
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Authentication failed');
-                }
-                return response.json(); // Assuming the API returns JSON data
-            })
-            .then(user => {
-                // In a real application, you should also validate the password on the server-side
-                //  comparing the provided password with a stored hash.
-                if (user && determineUserRole(user.role) === 'user') {
-                    window.location.href = 'index.html'; // Redirect to user dashboard
-                } else if (user && determineUserRole(user.role) === 'admin') {
-                    window.location.href = '/management'; // Redirect to admin panel
-                } else {
-                     errorMessage.textContent = 'Invalid credentials. Please try again.';
-                }
-            })
-            .catch(error => {
-                errorMessage.textContent = 'Error: ' + error.message; // Show the error message
-            });
+        fetch(`/api/user/login?username=${username}&password=${password}`, {  // Changed to the correct API endpoint
+            method: 'POST', // Use POST for login
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Authentication failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Store user information in sessionStorage
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('userRole', data.role);
+            sessionStorage.setItem('username', data.username);
+            // Redirect to the index page
+            window.location.href = '/';
+        })
+        .catch(error => {
+            errorMessage.textContent = 'Error: ' + error.message;
+        });
         e.target.reset();
     });
 
@@ -237,17 +235,6 @@
 
     });
 
-    //  Determine user role.
-    function determineUserRole(role) {
-        if (role === 'admin') {
-            return 'admin';
-        } else if (role === 'user') {
-            return 'user';
-        }
-         else {
-            return 'invalid';
-        }
-    }
 </script>
 </body>
 </html>

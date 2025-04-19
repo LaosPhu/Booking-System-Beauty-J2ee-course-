@@ -1,0 +1,55 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <!-- style css -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Responsive-->
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+<div id="header-container">
+  <div th:if="${isLoggedIn}" th:replace="~{fragments/header-logged-in :: header}"></div>
+</div>
+  <div class="profile-container">
+    <div th:replace="~{fragments/profile/profile-sidebar-fragment :: sidebar}"></div>
+    <div class="main-content content-wrapper">
+      <div class="profile-content-container">
+        <div th:replace="~{${fragmentName}}"></div>
+
+
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+
+  function fetchUserProfile() {
+
+      fetch('/api/user/profile')
+
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch user profile');
+          }
+          return response.json();
+      })
+      .then(userData => {
+          displayUserProfile(userData);
+      })
+      .catch(error => {
+          console.error('Error fetching user profile:', error);
+      });
+  }
+  function displayUserProfile(userData) {
+      document.getElementById('profile-name').textContent = userData.lastName + ' ' +  userData.firstName;
+      document.getElementById('profile-email').textContent = userData.email;
+      document.getElementById('profile-username').textContent = userData.username;
+      // Populate other fields
+  }
+  window.onload = fetchUserProfile;
+
+</script>
+</html>
