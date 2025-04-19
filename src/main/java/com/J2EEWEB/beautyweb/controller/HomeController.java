@@ -1,7 +1,11 @@
 package com.J2EEWEB.beautyweb.controller;
 
+import com.J2EEWEB.beautyweb.entity.Booking;
 import com.J2EEWEB.beautyweb.entity.Service;
+import com.J2EEWEB.beautyweb.entity.User;
+import com.J2EEWEB.beautyweb.repository.BookingRepository;
 import com.J2EEWEB.beautyweb.repository.ServiceRepository;
+import com.J2EEWEB.beautyweb.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,12 +15,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class HomeController {
 
     @Autowired
     private ServiceRepository serviceRepository;
+    @Autowired
+    private BookingRepository bookingRepository;
+    @Autowired
+    private UserRepository userRepository;
     @GetMapping("/contact")
     public String contact() {
         return "redirect:/contact.html";
@@ -51,9 +60,10 @@ public class HomeController {
         return "index";
     }
     @GetMapping("/profile/{selection}")
-    public String profile(@PathVariable String selection, Model model){
+    public String profile(@PathVariable String selection, Model model,HttpSession session){
         String fragmentName = "fragments/profile/" + selection + "-fragment";
         model.addAttribute("fragmentName", fragmentName);
+
 
         return "profile";
     }

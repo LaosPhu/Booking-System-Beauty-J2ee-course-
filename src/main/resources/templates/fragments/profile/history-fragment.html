@@ -1,10 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking History</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
-<body>
 
+<body>
+<p class="divider">Booking History:</p>
+<div class="container mt-5">
+    <h1>Booking History</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Booking ID</th>
+            <th>Appointment Date & Time</th>
+            <th>Booking Date</th>
+            <th>Status</th>
+            <th>Total Price</th>
+            <th>Payment Method</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        <tbody id="booking-history-body">
+        </tbody>
+    </table>
+</div>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        const bookingHistoryTableBody = $('#booking-history-body');
+
+        function fetchBookingHistory() {
+            //changed the code here
+            const username = sessionStorage.getItem('username');
+            fetch(`/api/booking/getAllbyID`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(bookings => {
+                    updateBookingHistoryTable(bookings);
+                })
+                .catch(error => {
+                    console.error('Error fetching booking history:', error);
+                    bookingHistoryTableBody.html('<tr><td colspan="7" class="text-center">Failed to load booking history.</td></tr>');
+                });
+        }
+
+        function updateBookingHistoryTable(bookings) {
+            bookingHistoryTableBody.empty();
+
+            if (!bookings || bookings.length === 0) {
+                bookingHistoryTableBody.html('<tr><td colspan="7" class="text-center">No bookings found.</td></tr>');
+                return;
+            }
+
+            const rows = bookings.map(booking => {
+                const detailsHTML = generateServiceDetailsHTML(booking.serviceNames);
+                return `
+                    <tr>
+                        <td>${booking.bookingId}</td>
+                        <td>${booking.appointmentDateTime}</td>
+                        <td>${booking.bookingDate}</td>
+                        <td>${booking.bookingStatus}</td>
+                        <td>${booking.totalPrice}</td>
+                        <td>${booking.paymentMethod}</td>
+                        <td>${detailsHTML}</td>
+                    </tr>
+                `;
+            }).join('');  // Join the array of row strings into a single HTML string
+
+            bookingHistoryTableBody.html(rows); // Use html() to insert the entire table content at once.
+        }
+
+        function generateServiceDetailsHTML(serviceNames) {
+            if (!serviceNames || serviceNames.length === 0) {
+                return '<ul><li>No Services</li></ul>';
+            }
+            const listItems = serviceNames.map(serviceName => `<li>${serviceName}</li>`).join('');
+            return `<ul>${listItems}</ul>`;
+        }
+
+        //removed username from thymeleaf
+        fetchBookingHistory(); // Call the function to fetch and update
+    });
+</script>
 </body>
 </html>

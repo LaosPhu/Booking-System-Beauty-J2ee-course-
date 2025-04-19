@@ -206,7 +206,12 @@
             sessionStorage.setItem('userRole', data.role);
             sessionStorage.setItem('username', data.username);
             // Redirect to the index page
-            window.location.href = '/';
+         // Redirect based on user role
+            if (data.role === 'admin') {
+                window.location.href = '/admin';
+            } else {
+                window.location.href = '/';
+            }
         })
         .catch(error => {
             errorMessage.textContent = 'Error: ' + error.message;
