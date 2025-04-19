@@ -104,7 +104,40 @@ public class UserController {
                     // If the session is invalid or the user attribute is not found, return an error.
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
                 }
-
+    @PostMapping("/changepassword")
+    public ResponseEntity<String> changePassword(HttpSession session,
+                                                 @RequestParam("oldPassword") String oldPassword,
+                                                 @RequestParam("newPassword") String newPassword,
+                                                 @RequestParam("confirmNewPassword") String confirmNewPassword) {
+        if (session != null) {
+            String username = (String) session.getAttribute("username");
+            Optional<User> user = userRepository.findByUsername(username);
+            if (user.isPresent()) {
+                // Check if new password and confirmation match
+                if (!newPassword.equals(confirmNewPassword)) {
+                    return ResponseEntity.badRequest().body("New password and confirmation do not match.");
+                }
+                //  Additional password strength check (optional)
+                if (newPassword.length() < 8) {
+                    return ResponseEntity.badRequest().body("New password must be at least 8 characters long.");
+                }
+                if(newPassword.equals(oldPassword)){
+                    return ResponseEntity.badRequest().body("New password matches old password.");
+                }
+                if (oldPassword.equals(user.get().getPassword())) {
+                    user.get().setPassword(newPassword); // In a real application, you would hash the new password before saving it
+                    userRepository.save(user.get());
+                    return ResponseEntity.ok("Password changed successfully.");
+                } else {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid old password.");
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found."); //Should not happen
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session expired. Please log in again.");
     }
+
+}
 
 
