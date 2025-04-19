@@ -3,7 +3,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
 @Entity
 public class Payment {
 
@@ -18,11 +17,6 @@ public class Payment {
     @Column(nullable = false)
     private LocalDateTime paymentDate;
 
-    @Column(nullable = false)
-    private String paymentMethod;
-
-    @Column(nullable = false)
-    private BigDecimal amount;
 
     private String transactionId;
     private String paymentStatus;
@@ -31,11 +25,9 @@ public class Payment {
     public Payment() {
     }
 
-    public Payment(Booking booking, LocalDateTime paymentDate, String paymentMethod, BigDecimal amount, String transactionId, String paymentStatus) {
+    public Payment(Booking booking, LocalDateTime paymentDate,  String transactionId, String paymentStatus) {
         this.booking = booking;
         this.paymentDate = paymentDate;
-        this.paymentMethod = paymentMethod;
-        this.amount = amount;
         this.transactionId = transactionId;
         this.paymentStatus = paymentStatus;
     }
@@ -64,21 +56,6 @@ public class Payment {
         this.paymentDate = paymentDate;
     }
 
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
 
     public String getTransactionId() {
         return transactionId;

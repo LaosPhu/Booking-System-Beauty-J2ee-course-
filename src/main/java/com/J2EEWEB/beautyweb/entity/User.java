@@ -32,25 +32,17 @@ public class User {
     @Column(nullable = false)
     private String role; // "user" or "admin"
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_service",  // Changed from staff_service to user_service
-            joinColumns = @JoinColumn(name = "user_id"), // Changed from staff_id to user_id
-            inverseJoinColumns = @JoinColumn(name = "service_id")
-    )
-    private List<Service> specializations;
-
     // Constructors, Getters, Setters
     public User() {
     }
 
     // Constructor for a general user
-    public User(String firstName, String lastName, String email,String username,String password, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role) {
+    public User(String firstName, String lastName, String email, String username, String password, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.username = username;
-        this.password= password;
+        this.password = password;
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.registrationDate = registrationDate;
@@ -58,27 +50,7 @@ public class User {
         this.role = role;
     }
 
-    // Constructor for a staff user
-    public User(String firstName, String lastName, String email, String phoneNumber, String role, List<Service> specializations) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
-        this.specializations = specializations;
-    }
-    //Full Constructor
-    public User(String firstName, String lastName, String email, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role, List<Service> specializations) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.registrationDate = registrationDate;
-        this.notes = notes;
-        this.role = role;
-        this.specializations = specializations;
-    }
+
 
     public Long getUserId() {
         return userId;
@@ -168,12 +140,6 @@ public class User {
         this.role = role;
     }
 
-    public List<Service> getSpecializations() {
-        return specializations;
-    }
 
-    public void setSpecializations(List<Service> specializations) {
-        this.specializations = specializations;
-    }
 }
 
