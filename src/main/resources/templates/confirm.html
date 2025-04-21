@@ -132,7 +132,7 @@
         </div>
 
         <!-- FORM ĐẶT LỊCH -->
-        <form id="request" class="main_form" POST action="/confirm">
+        <form id="request" class="main_form" POST action="/booking/confirm">
             <div class="row">
                 <input type="hidden" name="serviceId" th:value="${selectedServiceId}" />
 
@@ -161,7 +161,7 @@
                     <textarea id="comments" class="textarea" name="message" placeholder="Special Requests/Comments"></textarea>
                 </div>
                 <div class="col-md-12">
-                    <button class="send_btn" href = "/confirm">Book Now</button>
+                    <button class="send_btn" href = "/booking/confirm">Book Now</button>
                 </div>
             </div>
         </form>

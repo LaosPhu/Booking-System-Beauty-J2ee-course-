@@ -9,8 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
+
 @Controller
 public class HomeController {
 
@@ -35,11 +38,23 @@ public class HomeController {
         return "service"; // Render the Thymeleaf template
     }
     @GetMapping("/booking")
-    public String booking(Model model) {
+    public String booking(@RequestParam(required = false) Long selectedServiceId,
+                          Model model) {
         List<Service> services = serviceRepository.findAll();
         model.addAttribute("services", services);
-        return "booking"; // Render the Thymeleaf template
+        model.addAttribute("selectedServiceId", selectedServiceId);
+
+        if (selectedServiceId != null && selectedServiceId != 0) {
+            Optional<Service> selectedService = serviceRepository.findById(selectedServiceId);
+            selectedService.ifPresent(service -> model.addAttribute("selectedService", service));
+        }
+        return "booking";
     }
+    @GetMapping("/confirm")
+    public String confirm(Model model){
+        return "confirm";
+    }
+
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
         Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
