@@ -65,16 +65,18 @@
             <div class="select-box">
                 <select id="service" class="wide">
                     <option value="">Choose a service</option>
-                    <option th:each="service : ${services}"
-                            th:value="${service.serviceId}"
-                            th:data-name="${service.name}"
-                            th:data-description="${service.description}"
-                            th:data-duration="${service.duration}"
-                            th:data-price="${service.price}"
-                            th:data-category="${service.category}"
-                            th:text="${service.name}">
-                    </option>
+                    <th:block th:each="service : ${services}">
+                        <option th:value="${service.serviceId}"
+                                th:data-name="${service.name}"
+                                th:data-description="${service.description}"
+                                th:data-duration="${service.duration}"
+                                th:data-price="${service.price}"
+                                th:data-category="${service.category}"
+                                th:text="${service.name}">
+                        </option>
+                    </th:block>
                 </select>
+
             </div>
         </div>
         <!-- BẢNG HIỂN THỊ SERVICE -->
@@ -99,10 +101,14 @@
                         // Dùng để tránh thêm trùng service
                         const addedServiceIds = new Set();
 
+                        // Trường ẩn trong form để chứa các serviceId đã chọn
+                        const selectedServiceIdsInput = document.getElementById("selectedServiceIds");
+
                         select.addEventListener("change", function () {
                             const option = this.options[this.selectedIndex];
                             const serviceId = option.value;
 
+                            // Nếu không có serviceId hoặc serviceId đã được thêm rồi thì bỏ qua
                             if (!serviceId || addedServiceIds.has(serviceId)) return;
 
                             const name = option.getAttribute("data-name");
@@ -123,18 +129,23 @@
 
                             tbody.appendChild(row);
                             addedServiceIds.add(serviceId);
+
+                            // Cập nhật trường ẩn với danh sách serviceId đã chọn
+                            const selectedServiceIds = Array.from(addedServiceIds);
+                            selectedServiceIdsInput.value = selectedServiceIds.join(",");
                         });
                     });
                 </script>
+
 
                 </tbody>
             </table>
         </div>
 
         <!-- FORM ĐẶT LỊCH -->
-        <form id="request" class="main_form" POST action="/confirm">
-            <div class="row">
-                <input type="hidden" name="serviceId" th:value="${selectedServiceId}" />
+        <form id="request" class="main_form" method="POST" action="/confirm">
+        <div class="row">
+            <input type="hidden" id="selectedServiceIds" name="serviceId" />
 
                 <div class="col-md-6">
                     <label for="date">Date:</label>
@@ -161,7 +172,7 @@
                     <textarea id="comments" class="textarea" name="message" placeholder="Special Requests/Comments"></textarea>
                 </div>
                 <div class="col-md-12">
-                    <button class="send_btn" href = "/confirm">Book Now</button>
+                    <button type="submit" class="send_btn">Book Now</button>
                 </div>
             </div>
         </form>

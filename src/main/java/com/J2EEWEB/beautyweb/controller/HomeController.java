@@ -6,11 +6,9 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,10 +48,33 @@ public class HomeController {
         }
         return "booking";
     }
-    @GetMapping("/confirm")
-    public String confirm(Model model){
-        return "confirm";
+    @PostMapping("/confirm")
+    public String confirmBooking(@RequestParam String date,
+                                 @RequestParam String time,
+                                 @RequestParam String name,
+                                 @RequestParam String email,
+                                 @RequestParam String phone,
+                                 @RequestParam(required = false) String message,
+                                 @RequestParam List<Long> serviceId, // Đây là danh sách ID dịch vụ đã chọn
+                                 Model model) {
+
+        List<Service> selectedServices = serviceRepository.findAllById(serviceId);
+        BigDecimal totalPrice = selectedServices.stream()
+                .map(Service::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("selectedServices", selectedServices);
+        model.addAttribute("totalPrice", totalPrice);
+        model.addAttribute("date", date);
+        model.addAttribute("time", time);
+        model.addAttribute("name", name);
+        model.addAttribute("email", email);
+        model.addAttribute("phone", phone);
+        model.addAttribute("message", message);
+
+        return "confirm"; // Trả về trang confirm với các dữ liệu đã điền
     }
+
 
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
