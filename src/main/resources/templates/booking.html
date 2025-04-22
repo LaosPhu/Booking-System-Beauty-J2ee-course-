@@ -59,51 +59,123 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <form id="request" class="main_form">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <label for="service">Service:</label>
-                            <div class="select-box">
-                                <select id="service" name="service" class="wide">
-                                    <option value="0">Choose a service</option>
-                                    <option th:each="service : ${services}" th:value="${service.serviceId}" th:text="${service.name}"></option>
+        <!-- FORM CHỌN SERVICE -->
+        <div class="col-md-12">
+            <label for="service">Service:</label>
+            <div class="select-box">
+                <select id="service" class="wide">
+                    <option value="">Choose a service</option>
+                    <th:block th:each="service : ${services}">
+                        <option th:value="${service.serviceId}"
+                                th:data-name="${service.name}"
+                                th:data-description="${service.description}"
+                                th:data-duration="${service.duration}"
+                                th:data-price="${service.price}"
+                                th:data-category="${service.category}"
+                                th:text="${service.name}">
+                        </option>
+                    </th:block>
+                </select>
 
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="date">Date:</label>
-                            <input id="date" class="form-control" type="text" name="date" placeholder="Date" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="time">Time:</label>
-                            <input id="time" class="form-control" type="text" name="time" placeholder="Time" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="name">Your Name:</label>
-                            <input id="name" class="form-control" type="text" name="name" placeholder="Your Name" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="email">Email:</label>
-                            <input id="email" class="form-control" type="email" name="email" placeholder="Email" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="phone">Phone Number:</label>
-                            <input id="phone" class="form-control" type="tel" name="phone" placeholder="Phone Number" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="comments">Special Requests/Comments:</label>
-                            <textarea id="comments" class="textarea" name="message" placeholder="Special Requests/Comments"></textarea>
-                        </div>
-                        <div class="col-md-12">
-                            <button class="send_btn">Book Now</button>
-                        </div>
-                    </div>
-                </form>
             </div>
         </div>
+        <!-- BẢNG HIỂN THỊ SERVICE -->
+        <div class="col-md-12" style="margin-top: 15px;">
+            <table border="1" class="table" id="serviceTable">
+                <thead>
+                <tr>
+                    <th>Service ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Duration</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                </tr>
+                </thead>
+                <tbody>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const select = document.getElementById("service");
+                        const tbody = document.querySelector("#serviceTable tbody");
+
+                        // Dùng để tránh thêm trùng service
+                        const addedServiceIds = new Set();
+
+                        // Trường ẩn trong form để chứa các serviceId đã chọn
+                        const selectedServiceIdsInput = document.getElementById("selectedServiceIds");
+
+                        select.addEventListener("change", function () {
+                            const option = this.options[this.selectedIndex];
+                            const serviceId = option.value;
+
+                            // Nếu không có serviceId hoặc serviceId đã được thêm rồi thì bỏ qua
+                            if (!serviceId || addedServiceIds.has(serviceId)) return;
+
+                            const name = option.getAttribute("data-name");
+                            const description = option.getAttribute("data-description");
+                            const duration = option.getAttribute("data-duration");
+                            const price = option.getAttribute("data-price");
+                            const category = option.getAttribute("data-category");
+
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${serviceId}</td>
+                                <td>${name}</td>
+                                <td>${description}</td>
+                                <td>${duration}</td>
+                                <td>${price}</td>
+                                <td>${category}</td>
+                            `;
+
+                            tbody.appendChild(row);
+                            addedServiceIds.add(serviceId);
+
+                            // Cập nhật trường ẩn với danh sách serviceId đã chọn
+                            const selectedServiceIds = Array.from(addedServiceIds);
+                            selectedServiceIdsInput.value = selectedServiceIds.join(",");
+                        });
+                    });
+                </script>
+
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FORM ĐẶT LỊCH -->
+        <form id="request" class="main_form" method="POST" action="/confirm">
+        <div class="row">
+            <input type="hidden" id="selectedServiceIds" name="serviceId" />
+
+                <div class="col-md-6">
+                    <label for="date">Date:</label>
+                    <input id="date" class="form-control" type="text" name="date" placeholder="Date" >
+                </div>
+                <div class="col-md-6">
+                    <label for="time">Time:</label>
+                    <input id="time" class="form-control" type="text" name="time" placeholder="Time" >
+                </div>
+                <div class="col-md-12">
+                    <label for="name">Your Name:</label>
+                    <input id="name" class="form-control" type="text" name="name" placeholder="Your Name" >
+                </div>
+                <div class="col-md-12">
+                    <label for="email">Email:</label>
+                    <input id="email" class="form-control" type="email" name="email" placeholder="Email" >
+                </div>
+                <div class="col-md-12">
+                    <label for="phone">Phone Number:</label>
+                    <input id="phone" class="form-control" type="tel" name="phone" placeholder="Phone Number" >
+                </div>
+                <div class="col-md-12">
+                    <label for="comments">Special Requests/Comments:</label>
+                    <textarea id="comments" class="textarea" name="message" placeholder="Special Requests/Comments"></textarea>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="send_btn">Book Now</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 <footer>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spa Booking</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="icon" href="images/fevicon.png" type="image/gif" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="css/bootstrap-datepicker.min.css">
+</head>
+<body class="main-layout">
+<div class="loader_bg">
+    <div class="loader"><img src="images/loading.gif" alt="#"/></div>
+</div>
+
+<div class="booking">
+    <div class="container">
+        <h2>Booking Confirmation</h2>
+
+        <p><strong>Date:</strong> <span th:text="${date}"></span></p>
+        <p><strong>Time:</strong> <span th:text="${time}"></span></p>
+        <p><strong>Name:</strong> <span th:text="${name}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${email}"></span></p>
+        <p><strong>Phone:</strong> <span th:text="${phone}"></span></p>
+        <p><strong>Special Request:</strong> <span th:text="${message}"></span></p>
+
+        <h3>Selected Services</h3>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Service Name</th>
+                <th>Description</th>
+                <th>Duration</th>
+                <th>Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="service : ${selectedServices}">
+                <td th:text="${service.name}"></td>
+                <td th:text="${service.description}"></td>
+                <td th:text="${service.duration} + ' mins'"></td>
+                <td th:text="${#numbers.formatDecimal(service.price, 1, 'POINT', 2, 'NONE')} + ' $'"></td>
+            </tr>
+            </tbody>
+        </table>
+
+
+
+        <h4>Total Price: <span th:text="${#numbers.formatDecimal(totalPrice, 1, 'POINT', 2, 'NONE')} + ' $'"></span></h4>
+    </div>
+</div>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/jquery-3.0.0.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/bootstrap-datepicker.min.js"></script>
+<script src="js/custom.js"></script>
+<script>
+    $( function() {
+        $( "#date" ).datepicker();
+    } );
+    $( function() {
+        $( "#time" ).timepicker();
+    } );
+</script>
+</body>
+</html>
