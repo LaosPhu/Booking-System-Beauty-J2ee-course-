@@ -22,7 +22,7 @@ public class Service {
     private String description;
 
     @Column(nullable = false)
-    private Duration duration;
+    private int duration;
 
     @Column(nullable = false)
     private BigDecimal price;
@@ -35,7 +35,17 @@ public class Service {
     public Service() {
     }
 
-    public Service(String name, String description, Duration duration, BigDecimal price, String category,String ImageURL) {
+    public Service(String name, String description, int duration, BigDecimal price, String category,String ImageURL) {
+        this.name = name;
+        this.description = description;
+        this.duration = duration;
+        this.price = price;
+        this.category = category;
+        this.imageURL = imageURL;
+    }
+
+    public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL) {
+        this.serviceId = serviceId;
         this.name = name;
         this.description = description;
         this.duration = duration;
@@ -76,11 +86,11 @@ public class Service {
         this.description = description;
     }
 
-    public Duration getDuration() {
+    public int getDuration() {
         return duration;
     }
 
-    public void setDuration(Duration duration) {
+    public void setDuration(int duration) {
         this.duration = duration;
     }
 

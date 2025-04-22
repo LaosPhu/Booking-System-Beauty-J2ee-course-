@@ -9,13 +9,21 @@
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta name="author" content="">
+    <!-- bootstrap css -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- style css -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Responsive-->
     <link rel="stylesheet" href="css/responsive.css">
-    <link rel="icon" href="images/fevicon.png" type="image/gif" />
+    <!-- fevicon -->
+    <!-- Tweaks for older IEs-->
     <link rel="stylesheet" href="css/owl.carousel.min.css">
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
     <link rel="stylesheet" href="css/bootstrap-datepicker.min.css">
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
+
 </head>
 <body class="main-layout inner_page">
 <div class="loader_bg">
@@ -61,16 +69,11 @@
                 </div>
             </div>
         </div>
-        <div class="row" >
-            <th:block th:each="service : ${services}">
-                <div id="ho_shad" class="services_box text_align_left">
-                    <h3 text="${service.name}">Service Name</h3>
-                    <figure><img src="images/service1.jpg" alt="#"/></figure>
-                    <p text="${service.description}">Service Description</p>
-                    <a class="read_more" href="service.html">Read More</a>
-                </div>
-
-            </th:block>
+        <div class="row">
+            <div class="col-md-4">
+        <div class="row" id="serviceContainer">
+        </div>
+            </div>
         </div>
     </div>
 </div>
@@ -157,5 +160,33 @@
 <script src="js/owl.carousel.min.js"></script>
 <script src="js/bootstrap-datepicker.min.js"></script>
 <script src="js/custom.js"></script>
+<script>
+    fetch('/api/service/getAll')
+     .then(response => response.json())
+     .then(services => {
+         const serviceContainer = document.getElementById('serviceContainer');
+         serviceContainer.innerHTML = ''; // Clear initial content
+         services.forEach(service => {
+            const serviceItemHTML = document.createElement('div');
+            serviceItemHTML.className = 'col-md-4';
+            serviceItemHTML.innerHTML = `
+                <div class="ho-shad services_box text_align_left">
+
+                        <div class="service-name" data-name="${service.name}"><h3>${service.name}</h3></div>
+                        <figure>
+                        <img data-image="${service.imageUrls}" alt="${service.name}">
+                        </figure>
+                        <div class="service-description" data-description="${service.description}"><p>${service.description}</p>></div>
+                        <div class="service-price" data-price="${service.retailPrice}"><p>Price: $${service.retailPrice}</p>></div>
+                        <div class="service-duration" data-duration="${service.duration}"><p>Duration: ${service.duration}</p>></div>
+                    <button class="service-favorite" data-id="${service.id}">♡</button>
+                </div>
+            `;
+            serviceContainer.appendChild(serviceItemHTML);
+
+         });
+     })
+     .catch(error => console.error('Error fetching services:', error));
+</script>
 </body>
 </html>

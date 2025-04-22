@@ -17,19 +17,22 @@ public class Payment {
     @Column(nullable = false)
     private LocalDateTime paymentDate;
 
-
+    public String paymentMethod;
     private String transactionId;
     private String paymentStatus;
+    private BigDecimal amount;
 
     // Constructors, Getters, Setters
     public Payment() {
     }
 
-    public Payment(Booking booking, LocalDateTime paymentDate,  String transactionId, String paymentStatus) {
+    public Payment(Booking booking, LocalDateTime paymentDate,String paymentMethod,  String transactionId, String paymentStatus,BigDecimal amount) {
         this.booking = booking;
         this.paymentDate = paymentDate;
+        this.paymentMethod = paymentMethod;
         this.transactionId = transactionId;
         this.paymentStatus = paymentStatus;
+        this.amount = amount;
     }
 
     public Long getPaymentId() {
@@ -46,6 +49,14 @@ public class Payment {
 
     public void setBooking(Booking booking) {
         this.booking = booking;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public LocalDateTime getPaymentDate() {
@@ -71,5 +82,13 @@ public class Payment {
 
     public void setPaymentStatus(String paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 }
