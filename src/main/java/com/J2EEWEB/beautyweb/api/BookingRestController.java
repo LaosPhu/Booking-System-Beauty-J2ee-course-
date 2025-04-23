@@ -19,12 +19,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/booking")
-public class BookingController {
+public class BookingRestController {
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -161,48 +162,46 @@ public class BookingController {
     }
     @PostMapping("/confirmCash")
     @Transactional //  Use a transaction to ensure data consistency
-    public ResponseEntity<Long> confirmCashBooking(
-            @RequestParam("date") String dateStr,
-            @RequestParam("time") String timeStr,
-            @RequestParam("serviceId") List<Long> serviceIds, // Changed to List<Long>
-            HttpSession session) {
-
+    public ResponseEntity<Long> confirmCashBooking(HttpSession session) {
         String username = (String) session.getAttribute("username");
+        com.J2EEWEB.beautyweb.controller.BookingController.BookingData bookingData = (com.J2EEWEB.beautyweb.controller.BookingController.BookingData) session.getAttribute("bookingData");
+        List<Service> selectedServices = (List<Service>) session.getAttribute("selectedServices");
         if (username == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (!userOptional.isPresent()) {
             return ResponseEntity.badRequest().body(null);
         }
         User user = userOptional.get();
 
-        LocalDate bookingDate = LocalDate.parse(dateStr);
-        LocalTime bookingTime = LocalTime.parse(timeStr);
-        LocalDateTime appointmentDateTime = LocalDateTime.of(bookingDate, bookingTime);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm"); //added time formatter
 
-
+        LocalDate bookingDate = LocalDate.parse(bookingData.getDate(), dateFormatter);
+        LocalTime bookingTime = LocalTime.parse(bookingData.getTime(), timeFormatter);
+        LocalDateTime bookingDateTime = LocalDateTime.of(bookingDate,bookingTime);
         // 1. Create Booking
         Booking booking = new Booking();
         booking.setCustomer(user);
-        booking.setAppointmentDateTime(appointmentDateTime);
+        booking.setAppointmentDateTime(bookingDateTime);
         booking.setBookingDate(bookingDate);
-        booking.setBookingStatus("pending");
-        booking.setTotalPrice(BigDecimal.ZERO); // Initial price is 0
+        booking.setBookingStatus("Pending");
+        booking.setTotalPrice(bookingData.getTotalPrice()); // Initial price is 0
         booking.setPaymentMethod("Cash");
         booking = bookingRepository.save(booking); // Save to get the bookingId
         Long bookingId = booking.getBookingId();
 
         // 2. Add Booking Details
-        BigDecimal totalPrice = BigDecimal.ZERO; // Use BigDecimal for calculations
-        for (Long serviceId : serviceIds) {
+        //BigDecimal totalPrice = BigDecimal.ZERO; // Use BigDecimal for calculations
+        for (Service service : selectedServices) { // Iterate through the List<Service>
+            Long serviceId = service.getServiceId(); // Extract the serviceId
             Optional<Service> serviceOptional = serviceRepository.findById(serviceId);
             if (serviceOptional.isPresent()) {
-                Service service = serviceOptional.get();
-                BookingDetails bookingDetails = new BookingDetails(booking, service);
+                Service serviceObj = serviceOptional.get(); // Use a different name to avoid shadowing
+                BookingDetails bookingDetails = new BookingDetails(booking, serviceObj);
                 bookingDetailsRepository.save(bookingDetails);
-                totalPrice = totalPrice.add(service.getPrice()); // Sum prices
+                //totalPrice = totalPrice.add(service.getPrice()); // Sum prices
 
             } else {
                 // Handle the case where a service ID is invalid.  This is important!
@@ -210,9 +209,6 @@ public class BookingController {
             }
         }
 
-        // 3. Calculate and set Total Price
-        booking.setTotalPrice(totalPrice);
-        bookingRepository.save(booking); // Save the updated price
 
         return ResponseEntity.ok(bookingId); // Return the booking ID
     }

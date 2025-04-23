@@ -45,47 +45,6 @@ public class HomeController {
         model.addAttribute("services", services);
         return "service"; // Render the Thymeleaf template
     }
-    @GetMapping("/booking")
-    public String booking(@RequestParam(required = false) Long selectedServiceId,
-                          Model model) {
-        List<Service> services = serviceRepository.findAll();
-        model.addAttribute("services", services);
-        model.addAttribute("selectedServiceId", selectedServiceId);
-
-        if (selectedServiceId != null && selectedServiceId != 0) {
-            Optional<Service> selectedService = serviceRepository.findById(selectedServiceId);
-            selectedService.ifPresent(service -> model.addAttribute("selectedService", service));
-        }
-        return "booking";
-    }
-    @PostMapping("/confirm")
-    public String confirmBooking(@RequestParam String date,
-                                 @RequestParam String time,
-                                 @RequestParam String name,
-                                 @RequestParam String email,
-                                 @RequestParam String phone,
-                                 @RequestParam(required = false) String message,
-                                 @RequestParam List<Long> serviceId, // Đây là danh sách ID dịch vụ đã chọn
-                                 Model model) {
-
-        List<Service> selectedServices = serviceRepository.findAllById(serviceId);
-        BigDecimal totalPrice = selectedServices.stream()
-                .map(Service::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        model.addAttribute("selectedServices", selectedServices);
-        model.addAttribute("totalPrice", totalPrice);
-        model.addAttribute("date", date);
-        model.addAttribute("time", time);
-        model.addAttribute("name", name);
-        model.addAttribute("email", email);
-        model.addAttribute("phone", phone);
-        model.addAttribute("message", message);
-
-        return "confirm"; // Trả về trang confirm với các dữ liệu đã điền
-    }
-
-
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
         Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");

@@ -60,7 +60,7 @@
         <button id="payNowButton" class="btn btn-primary" style="display: none;">Pay Now</button>
         <button id="paywithCash" class="btn btn-primary" style="display: block;">Book Now</button>
 
-        <div id="payment-message" style="margin-top: 20px; font-weight: bold; color: green;"></div>
+        <div id="payment-message" text="Payment will be processed at the spa." style="margin-top: 20px; font-weight: bold; color: green;"></div>
     </div>
 </div>
 
@@ -130,51 +130,34 @@
         });
 
     });
-    document.getElementById('paywithCash').addEventListener('click', () => {
-    const date = document.getElementById('date').value;
-    const time = document.getElementById('time').value;
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
-    const selectedServiceIdsInput = document.getElementById('selectedServiceIds').value;
-    const selectedServiceIds = selectedServiceIdsInput.split(',').map(id => parseInt(id, 10));
-
-
-    if (!date || !time || !name || !email || !phone || selectedServiceIds.length === 0) {
-        alert('Please fill in all the required fields and select services.');
-        return;
-    }
-
-    fetch('/api/booking/confirmCash', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded', // Or 'application/json'
-        },
-        body: new URLSearchParams({  //  Use URLSearchParams
-            date: date,
-            time: time,
-            serviceId: selectedServiceIds, //  Send the array
-        }).toString()
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to confirm booking.');
-        }
-        return response.json(); //  Parse the response body as JSON
-    })
-    .then(data => {
-        // data should contain the bookingId
-        paymentMessage.textContent = `Booking confirmed! Your Booking ID is: ${data}`;
-        //  Redirect or show a success message to the user.
-        alert(`Booking confirmed! Your Booking ID is: ${data}`);
-
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        paymentMessage.textContent = 'Failed to confirm booking. Please try again.';
-        alert('Failed to confirm booking. Please try again.');
+     document.getElementById('paywithCash').addEventListener('click', () => {
+        const paymentMessage = document.getElementById('payment-message'); // Get the element to display the message
+        // No need to send data, the data is already in the session.
+        fetch('/api/booking/confirmCash', { // Call the REST controller endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Important:  Use JSON content type.
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to confirm booking.');
+            }
+            return response.json(); // Parse the JSON response
+        })
+        .then(bookingId => {
+            // data should contain the bookingId
+            paymentMessage.textContent = `Booking confirmed! Your Booking ID is: ${bookingId}`;
+            alert(`Booking confirmed! Your Booking ID is: ${bookingId}`); //Show booking ID
+            // Redirect to a confirmation page or update the UI as needed.
+            // window.location.href = `/booking/confirmation?bookingId=${bookingId}`; // Example redirect
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            paymentMessage.textContent = 'Failed to confirm booking. Please try again.';
+            alert('Failed to confirm booking. Please try again.');
+        });
     });
-});
 
 </script>
 </body>

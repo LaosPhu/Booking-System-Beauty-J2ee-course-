@@ -1,9 +1,11 @@
 package com.J2EEWEB.beautyweb.entity;
 import jakarta.persistence.*;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 
 @Entity
@@ -36,7 +38,7 @@ public class Booking {
     @Column(nullable = false)
     private String paymentMethod; // "Cash" or "Online"
 
-
+    private String message;
     // Constructors, Getters, Setters
     public Booking() {
     }
@@ -49,6 +51,8 @@ public class Booking {
         this.totalPrice = totalPrice;
         this.paymentMethod = paymentMethod;
     }
+
+
 
     public Long getBookingId() {
         return bookingId;
@@ -107,6 +111,14 @@ public class Booking {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
 
