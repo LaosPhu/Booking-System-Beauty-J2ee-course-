@@ -29,6 +29,8 @@ public class Service {
 
     private String category;
 
+    private boolean status;
+
     @Column(nullable = true)
     private String imageURL;
     // Constructors, Getters, Setters
@@ -42,6 +44,7 @@ public class Service {
         this.price = price;
         this.category = category;
         this.imageURL = imageURL;
+        this.status = true;
     }
 
     public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL) {
@@ -108,5 +111,13 @@ public class Service {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

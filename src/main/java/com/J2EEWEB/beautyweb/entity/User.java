@@ -32,6 +32,7 @@ public class User {
     @Column(nullable = false)
     private String role; // "user" or "admin"
 
+    private boolean status;
     // Constructors, Getters, Setters
     public User() {
     }
@@ -140,6 +141,12 @@ public class User {
         this.role = role;
     }
 
+    public boolean isStatus() {
+        return status;
+    }
 
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
 }
 
