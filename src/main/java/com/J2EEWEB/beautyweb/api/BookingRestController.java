@@ -1,13 +1,11 @@
 package com.J2EEWEB.beautyweb.api;
 
-import com.J2EEWEB.beautyweb.entity.Booking;
-import com.J2EEWEB.beautyweb.entity.BookingDetails;
-import com.J2EEWEB.beautyweb.entity.Service;
-import com.J2EEWEB.beautyweb.entity.User;
+import com.J2EEWEB.beautyweb.entity.*;
 import com.J2EEWEB.beautyweb.repository.BookingDetailsRepository;
 import com.J2EEWEB.beautyweb.repository.BookingRepository;
 import com.J2EEWEB.beautyweb.repository.ServiceRepository;
 import com.J2EEWEB.beautyweb.repository.UserRepository;
+import com.J2EEWEB.beautyweb.service.PaymentService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -38,12 +38,16 @@ public class BookingRestController {
 
     @Autowired
     private BookingDetailsRepository bookingDetailsRepository;
+
+    @Autowired
+    private PaymentService paymentService;
     //  Get all bookings.  No authentication required.
     @GetMapping("/getAll")
     public ResponseEntity<List<Booking>> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
         return new ResponseEntity<>(bookings, HttpStatus.OK);
     }
+
 
     // Get all bookings for the logged-in user.
     @GetMapping("/getAllByUserID")
@@ -62,7 +66,32 @@ public class BookingRestController {
         }
         return ResponseEntity.ok(List.of()); // Return an empty list, not a 400 error, if no bookings
     }
+    @GetMapping("/details/{bookingId}")
+    public ResponseEntity<List<BookingDetails>> getBookingDetailsByBookingId(@PathVariable Long bookingId) {
+        //  input validation
+        if (bookingId == null || bookingId <= 0) {
+            return ResponseEntity.ok(List.of());
+        }
 
+        Optional<Booking> booking = bookingRepository.getBookingByBookingId(bookingId); // Use service
+        if (!booking.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
+        }
+
+        List<BookingDetails> bookingDetails = bookingDetailsRepository.findByBookingId(booking.get().getBookingId()); // Use the service
+
+        if (bookingDetails.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
+        }
+        return new ResponseEntity<>(bookingDetails,HttpStatus.OK);
+    }
+
+    //  Example: Get all booking details (for admin or debugging - use with caution)
+    @GetMapping("/details/all")
+    public ResponseEntity<List<BookingDetails>> getAllBookingDetails() {
+        List<BookingDetails> allBookingDetails = bookingDetailsRepository.findAll();
+        return ResponseEntity.ok(allBookingDetails);
+    }
     // Create a new booking.  Requires user authentication.
     @PostMapping("/create")
     public ResponseEntity<Booking> createBooking(@RequestBody Booking booking, HttpSession session) {
@@ -162,7 +191,8 @@ public class BookingRestController {
     }
     @PostMapping("/confirmCash")
     @Transactional //  Use a transaction to ensure data consistency
-    public ResponseEntity<Long> confirmCashBooking(HttpSession session) {
+    public ResponseEntity<Map<String, Object>> confirmCashBooking(HttpSession session) {
+        try{
         String username = (String) session.getAttribute("username");
         com.J2EEWEB.beautyweb.controller.BookingController.BookingData bookingData = (com.J2EEWEB.beautyweb.controller.BookingController.BookingData) session.getAttribute("bookingData");
         List<Service> selectedServices = (List<Service>) session.getAttribute("selectedServices");
@@ -199,7 +229,7 @@ public class BookingRestController {
             Optional<Service> serviceOptional = serviceRepository.findById(serviceId);
             if (serviceOptional.isPresent()) {
                 Service serviceObj = serviceOptional.get(); // Use a different name to avoid shadowing
-                BookingDetails bookingDetails = new BookingDetails(booking, serviceObj);
+                BookingDetails bookingDetails = new BookingDetails(booking.getBookingId(), serviceObj.getServiceId());
                 bookingDetailsRepository.save(bookingDetails);
                 //totalPrice = totalPrice.add(service.getPrice()); // Sum prices
 
@@ -209,7 +239,77 @@ public class BookingRestController {
             }
         }
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("bookingId", bookingId);
+        response.put("status", "success");
+        response.put("paymentMethod", "Cash");
 
-        return ResponseEntity.ok(bookingId); // Return the booking ID
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+    }
+    }
+    @PostMapping("/confirmOnline")
+    @Transactional //  Use a transaction to ensure data consistency
+    public ResponseEntity<Map<String,Object>> confirmOnlineBooking(HttpSession session) {
+        try{
+        String username = (String) session.getAttribute("username");
+        com.J2EEWEB.beautyweb.controller.BookingController.BookingData bookingData = (com.J2EEWEB.beautyweb.controller.BookingController.BookingData) session.getAttribute("bookingData");
+        List<Service> selectedServices = (List<Service>) session.getAttribute("selectedServices");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        User user = userOptional.get();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm"); //added time formatter
+
+        LocalDate bookingDate = LocalDate.parse(bookingData.getDate(), dateFormatter);
+        LocalTime bookingTime = LocalTime.parse(bookingData.getTime(), timeFormatter);
+        LocalDateTime bookingDateTime = LocalDateTime.of(bookingDate,bookingTime);
+        // 1. Create Booking
+        Booking booking = new Booking();
+        booking.setCustomer(user);
+        booking.setAppointmentDateTime(bookingDateTime);
+        booking.setBookingDate(bookingDate);
+        booking.setBookingStatus("Pending");
+        booking.setTotalPrice(bookingData.getTotalPrice()); // Initial price is 0
+        booking.setPaymentMethod("Online");
+        booking = bookingRepository.save(booking); // Save to get the bookingId
+        Long bookingId = booking.getBookingId();
+
+        // 2. Add Booking Details
+        //BigDecimal totalPrice = BigDecimal.ZERO; // Use BigDecimal for calculations
+        for (Service service : selectedServices) { // Iterate through the List<Service>
+            Long serviceId = service.getServiceId(); // Extract the serviceId
+            Optional<Service> serviceOptional = serviceRepository.findById(serviceId);
+            if (serviceOptional.isPresent()) {
+                Service serviceObj = serviceOptional.get(); // Use a different name to avoid shadowing
+                BookingDetails bookingDetails = new BookingDetails(booking.getBookingId(), serviceObj.getServiceId());
+                bookingDetailsRepository.save(bookingDetails);
+                //totalPrice = totalPrice.add(service.getPrice()); // Sum prices
+
+            } else {
+                // Handle the case where a service ID is invalid.  This is important!
+                return ResponseEntity.badRequest().body(null); // Or throw an exception, or log an error
+            }
+        }
+
+        //3 Add payment
+        Map<String, Object> response = new HashMap<>();
+        response.put("bookingId", bookingId);
+        response.put("status", "success");
+        response.put("paymentMethod", "Online");
+
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+    }
     }
 }

@@ -1,55 +1,358 @@
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Profile</title>
+  <meta charset="UTF-8">
+  <title>Profile</title>
   <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <!-- style css -->
   <link rel="stylesheet" href="/css/style.css">
-  <!-- Responsive-->
   <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <div id="header-container">
   <div th:if="${isLoggedIn}" th:replace="~{fragments/header-logged-in :: header}"></div>
 </div>
-  <div class="profile-container">
-    <div th:replace="~{fragments/profile/profile-sidebar-fragment :: sidebar}"></div>
-    <div class="main-content content-wrapper">
-      <div class="profile-content-container">
-        <div th:replace="~{${fragmentName}}"></div>
-
-
-      </div>
+<div class="profile-container">
+  <div th:replace="~{fragments/profile/profile-sidebar-fragment :: sidebar}"></div>
+  <div class="main-content content-wrapper">
+    <div class="profile-content-container">
+      <div th:replace="~{${fragmentName}}"></div>
     </div>
   </div>
-</body>
+</div>
+
 <script>
+  $(document).ready(function () {
+      // --- General User Profile Functions ---
+      function fetchUserProfile() {
+          fetch('/api/user/profile')
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Failed to fetch user profile');
+                  }
+                  return response.json();
+              })
+              .then(userData => {
+                  displayUserProfile(userData);
+              })
+              .catch(error => {
+                  console.error('Error fetching user profile:', error);
+              });
+      }
 
-  function fetchUserProfile() {
+      function displayUserProfile(userData) {
+          const nameElement = document.getElementById('profile-name');
+          const emailElement = document.getElementById('profile-email');
+          const usernameElement = document.getElementById('profile-username');
 
-      fetch('/api/user/profile')
-
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Failed to fetch user profile');
+          if (nameElement) {
+              nameElement.textContent = userData.lastName + ' ' + userData.firstName;
           }
-          return response.json();
-      })
-      .then(userData => {
-          displayUserProfile(userData);
-      })
-      .catch(error => {
-          console.error('Error fetching user profile:', error);
-      });
-  }
-  function displayUserProfile(userData) {
-      document.getElementById('profile-name').textContent = userData.lastName + ' ' +  userData.firstName;
-      document.getElementById('profile-email').textContent = userData.email;
-      document.getElementById('profile-username').textContent = userData.username;
-      // Populate other fields
-  }
-  window.onload = fetchUserProfile;
+          if (emailElement) {
+              emailElement.textContent = userData.email;
+          }
+          if (usernameElement) {
+              usernameElement.textContent = userData.username;
+          }
+      }
 
+      // --- Booking History Functions ---
+      function fetchBookingHistory() {
+          fetch('/api/booking/getAllByUserID')
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Failed to fetch booking history');
+                  }
+                  return response.json();
+              })
+              .then(bookingData => {
+                  displayBookingHistory(bookingData);
+              })
+              .catch(error => {
+                  console.error('Error fetching booking history:', error);
+              });
+      }
+
+      function displayBookingHistory(bookingData) {
+    const historyContainer = document.getElementById('booking-history-list');
+    if (!historyContainer) return;
+
+    historyContainer.innerHTML = '';
+
+    if (bookingData && bookingData.length > 0) {
+        const table = document.createElement('table');
+        table.classList.add('booking-history-table');
+
+        const headerRow = table.insertRow();
+        const headerBookingId = headerRow.insertCell();
+        const headerDate = headerRow.insertCell();
+        const headerAmount = headerRow.insertCell();
+        const headerDetails = headerRow.insertCell();
+        const headerPaymentStatus = headerRow.insertCell();
+        const headerPaymentMethod = headerRow.insertCell();
+        const headerAction = headerRow.insertCell();
+
+        headerBookingId.textContent = 'Booking ID';
+        headerDate.textContent = 'Date';
+        headerAmount.textContent = 'Amount';
+        headerDetails.textContent = 'Details';
+        headerPaymentStatus.textContent = 'Payment Status';
+        headerPaymentMethod.textContent = 'Payment Method';
+        headerAction.textContent = 'Action';
+
+        headerBookingId.style.fontWeight = 'bold';
+        headerDate.style.fontWeight = 'bold';
+        headerAmount.style.fontWeight = 'bold';
+        headerDetails.style.fontWeight = 'bold';
+        headerPaymentStatus.style.fontWeight = 'bold';
+        headerPaymentMethod.style.fontWeight = 'bold';
+        headerAction.style.fontWeight = 'bold';
+
+        const paymentMap = new Map();
+
+        const paymentPromises = bookingData.map(booking => {
+            return fetch(`/api/payment/getByBooking/${booking.bookingId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(payment => {
+                    if (payment) {
+                        paymentMap.set(booking.bookingId, payment);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching payment for booking ${booking.bookingId}:`, error);
+                    return null;
+                });
+        });
+
+        Promise.all(paymentPromises).then(() => {
+            bookingData.forEach(booking => {
+                const row = table.insertRow();
+                const bookingIdCell = row.insertCell();
+                const dateCell = row.insertCell();
+                const amountCell = row.insertCell();
+                const detailsCell = row.insertCell();
+                const paymentStatusCell = row.insertCell();
+                const paymentMethodCell = row.insertCell();
+                const actionCell = row.insertCell();
+
+                bookingIdCell.textContent = booking.bookingId;
+                dateCell.textContent = booking.appointmentDateTime;
+                amountCell.textContent = booking.totalPrice;
+
+                const detailsLink = document.createElement('a');
+                detailsLink.textContent = 'Details';
+                detailsLink.href = '#';
+                detailsLink.classList.add('detail-link');
+                detailsLink.addEventListener('click', function () {
+                    showBookingDetails(booking.bookingId);
+                });
+                detailsCell.appendChild(detailsLink);
+
+                const payment = paymentMap.get(booking.bookingId);
+                const paymentStatus = payment ? payment.paymentStatus : 'Pending';
+
+                paymentStatusCell.textContent = paymentStatus;
+                paymentMethodCell.textContent = booking.paymentMethod;
+
+                if (booking.paymentMethod === 'Online' && paymentStatus === 'Pending' || paymentStatus=== 'FAILED') {
+                    const payNowButton = document.createElement('button');
+                    payNowButton.textContent = 'Pay Now';
+                    // Pass bookingId and totalPrice from the current row's data
+                    payNowButton.addEventListener('click', function () {
+                        const rowBookingId = booking.bookingId;
+                        const rowTotalPrice = booking.totalPrice;
+                        processVNPayPayment(rowTotalPrice, rowBookingId);
+                    });
+                    actionCell.appendChild(payNowButton);
+                } else if (booking.paymentMethod === 'Cash' && paymentStatus === 'Pending') {
+                    actionCell.textContent = 'Payment at Spa';
+                } else {
+                    actionCell.textContent = '';
+                }
+            });
+            historyContainer.appendChild(table);
+        });
+    } else {
+        historyContainer.innerHTML = '<p>No booking history found.</p>';
+    }
+}
+
+function processVNPayPayment(totalPrice, bookingId) {
+    // Create modal for bank selection
+    const modalHtml = `
+        <div id="bankSelectionModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+            <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+                <h3>Select Payment Method</h3>
+                <div style="margin: 20px 0;">
+                    <label for="bankCode" style="display: block; margin-bottom: 8px;">Payment Method:</label>
+                    <select id="bankCode" class="form-control" style="width: 100%; padding: 8px;">
+                        <option value="VNBANK">Thẻ ATM - Tài khoản ngân hàng nội địa</option>
+                        <option value="INTCARD">Thẻ thanh toán quốc tế</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="cancelPayment" style="padding: 8px 16px; background: #ccc; border: none; border-radius: 4px;">Cancel</button>
+                    <button id="confirmPayment" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px;">Continue</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const modalDiv = document.createElement('div');
+    modalDiv.innerHTML = modalHtml;
+    document.body.appendChild(modalDiv);
+
+    document.getElementById('cancelPayment').addEventListener('click', function() {
+        document.body.removeChild(modalDiv);
+    });
+
+    document.getElementById('confirmPayment').addEventListener('click', function() {
+        const bankCode = document.getElementById('bankCode').value;
+        document.body.removeChild(modalDiv);
+
+        // Create payment with selected bank code
+        createVNPayPayment(totalPrice, bookingId, bankCode);
+    });
+}
+
+function createVNPayPayment(totalPrice, bookingId, bankCode) {
+    // Using URLSearchParams to properly encode parameters
+    const params = new URLSearchParams();
+    params.append('totalPrice', totalPrice);
+    params.append('bookingId', bookingId);
+    params.append('bankCode', bankCode);
+
+    fetch(`/api/payment/create-payment?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Get the actual error message from the response
+            return response.json().then(err => {
+                throw new Error(err.message || 'Failed to initiate payment');
+            });
+        }
+        return response.json();
+    })
+    .then(responseData => {
+        if (responseData.status === "OK") {
+            window.open(responseData.URL, '_blank');
+        } else {
+            alert('Failed to initiate payment: ' + (responseData.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Payment Error:', error);
+        alert('An error occurred while processing the payment: ' + error.message);
+    });
+}
+      function showBookingDetails(bookingId) {
+          fetch(`/api/booking/details/${bookingId}`)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error(`HTTP error! Status: ${response.status}`);
+                  }
+                  return response.json();
+              })
+              .then(bookingDetails => {
+                  const totalPrice = bookingDetails.reduce((sum, detail) => sum + detail.service.price, 0);
+
+                  let popupContent = `
+              <div style="background-color: white; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; max-width: 600px; width: 95%;">
+                  <h2 style="margin-bottom: 15px;">Booking Details (Booking ID: ${bookingId})</h2>
+                  <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                      <thead style="background-color: #f0f0f0;">
+                          <tr>
+                              <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Service Name</th>
+                              <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Duration (min)</th>
+                              <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Price</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+          `;
+
+                  bookingDetails.forEach(detail => {
+                      popupContent += `
+                  <tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.service.name}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.service.duration}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">$${detail.service.price.toFixed(2)}</td>
+                  </tr>
+              `;
+                  });
+
+                  popupContent += `
+                      </tbody>
+                  </table>
+                  <p style="font-size: 1.2em; font-weight: bold; text-align: right;">Total Price: $${totalPrice.toFixed(2)}</p>
+                  <button onclick="closePopup()" style="margin-top: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; display: block; margin-left: auto;">Close</button>
+              </div>
+          `;
+
+                  const popupDiv = document.createElement('div');
+                  popupDiv.id = 'bookingDetailsPopup';
+                  popupDiv.innerHTML = popupContent;
+
+                  document.body.appendChild(popupDiv);
+
+                  window.closePopup = function () {
+                      document.body.removeChild(popupDiv);
+                  };
+
+              })
+              .catch(error => {
+                  console.error('Error fetching booking details:', error);
+                  alert('Failed to fetch booking details. Please check your network connection and try again.');
+              });
+      }
+
+
+      // --- Page Initialization ---
+      // Call the relevant function based on the loaded fragment
+      if (window.location.pathname.includes("/profile/info")) {
+          fetchUserProfile();
+      } else if (window.location.pathname.includes("/profile/history")) {
+          fetchBookingHistory();
+      }
+      // Add more conditions for other profile sections as needed
+  });
+
+
+  function logout() {
+      const logoutButton = document.getElementById('logoutButton');
+
+      if (logoutButton) {
+          logoutButton.addEventListener('click', function (event) {
+              event.preventDefault();
+
+              fetch('/api/user/logout', {
+                  method: 'GET'
+              })
+                  .then(response => {
+                      if (response.ok) {
+                          document.cookie = 'JSESSIONID=; Max-Age=0; path=/;';
+                          sessionStorage.clear();
+                          window.location.href = '/';
+                      } else {
+                          console.error('Logout failed');
+                      }
+                  })
+                  .catch(error => {
+                      console.error('Error during logout:', error);
+                  });
+          });
+      }
+  }
+
+  window.onload = logout;
 </script>
+</body>
 </html>

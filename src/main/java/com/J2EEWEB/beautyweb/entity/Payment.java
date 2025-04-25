@@ -10,29 +10,33 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false, unique = true)
-    private Booking booking;
+    @Column(name = "booking_id", nullable = false, unique = false)
+    private long booking;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime paymentDate;
 
     public String paymentMethod;
+
+    @Column(nullable = true)
     private String transactionId;
     private String paymentStatus;
     private BigDecimal amount;
+    @Column(nullable = true)
 
+    private String responseCode;
     // Constructors, Getters, Setters
     public Payment() {
     }
 
-    public Payment(Booking booking, LocalDateTime paymentDate,String paymentMethod,  String transactionId, String paymentStatus,BigDecimal amount) {
+    public Payment(long booking, LocalDateTime paymentDate,String paymentMethod,  String transactionId, String paymentStatus,BigDecimal amount,String responseCode) {
         this.booking = booking;
         this.paymentDate = paymentDate;
         this.paymentMethod = paymentMethod;
         this.transactionId = transactionId;
         this.paymentStatus = paymentStatus;
         this.amount = amount;
+        this.responseCode   = responseCode;
     }
 
     public Long getPaymentId() {
@@ -43,11 +47,11 @@ public class Payment {
         this.paymentId = paymentId;
     }
 
-    public Booking getBooking() {
+    public long getBooking() {
         return booking;
     }
 
-    public void setBooking(Booking booking) {
+    public void setBooking(long booking) {
         this.booking = booking;
     }
 
@@ -90,5 +94,13 @@ public class Payment {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public String getResponseCode() {
+        return responseCode;
+    }
+
+    public void setResponseCode(String responseCode) {
+        this.responseCode = responseCode;
     }
 }

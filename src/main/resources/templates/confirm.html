@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/normalize.css">
     <link rel="icon" href="images/fevicon.png" type="image/gif" />
     <link rel="stylesheet" href="css/owl.carousel.min.css">
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
@@ -43,11 +44,11 @@
                 <td th:text="${service.name}"></td>
                 <td th:text="${service.description}"></td>
                 <td th:text="${service.duration} + ' mins'"></td>
-                <td th:text="${#numbers.formatDecimal(service.price, 1, 'POINT', 2, 'NONE')} + ' $'"></td>
+                <td th:text="${#numbers.formatDecimal(service.price, 1, 'POINT', 2, 'NONE')} + ' VND'"></td>
             </tr>
             </tbody>
         </table>
-        <h4>Total Price: <span th:text="${#numbers.formatDecimal(totalPrice, 1, 'POINT', 2, 'NONE')} + ' $'"></span></h4>
+        <h4>Total Price: <span th:text="${#numbers.formatDecimal(totalPrice, 1, 'POINT', 2, 'NONE')} + ' VND'"></span></h4>
 
         <div class="form-group">
             <label for="paymentMethod">Payment Method:</label>
@@ -57,10 +58,9 @@
             </select>
         </div>
 
-        <button id="payNowButton" class="btn btn-primary" style="display: none;">Pay Now</button>
-        <button id="paywithCash" class="btn btn-primary" style="display: block;">Book Now</button>
+        <button id="paymentButton" class="btn btn-primary">Book Now</button>
 
-        <div id="payment-message" text="Payment will be processed at the spa." style="margin-top: 20px; font-weight: bold; color: green;"></div>
+        <div id="payment-message" style="margin-top: 20px; font-weight: bold; color: green;">Payment will be processed at the spa.</div>
     </div>
 </div>
 
@@ -69,96 +69,70 @@
 <script src="js/jquery-3.0.0.min.js"></script>
 <script src="js/owl.carousel.min.js"></script>
 <script src="js/bootstrap-datepicker.min.js"></script>
-<script src="js/custom.js"></script>
+<script src="js/custom.js" defer></script>
 <script>
-    $( function() {
-        $( "#date" ).datepicker();
-    } );
-    $( function() {
-        $( "#time" ).timepicker();
-    } );
 
-    const paymentMethodSelect = document.getElementById('paymentMethod');
-    const payNowButton = document.getElementById('payNowButton');
-    const paywithCash  = document.getElementById('paywithCash');
-    const paymentMessage = document.getElementById('payment-message');
 
-    paymentMethodSelect.addEventListener('change', () => {
-        if (paymentMethodSelect.value === 'online') {
-            paywithCash.style.display = 'none';
-            payNowButton.style.display = 'block';
-            paymentMessage.textContent = ''; // Clear any previous message
-        } else {
-            payNowButton.style.display = 'none';
-            paywithCash.style.display = 'block';
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const paymentButton = document.getElementById('paymentButton');
+        const paymentMessage = document.getElementById('payment-message');
 
-            paymentMessage.textContent = 'Payment will be processed at the spa.';
-        }
-    });
+        // Get total price from the displayed value (since we can't access it directly)
+        const totalPrice = parseFloat(document.querySelector('h4 span').textContent.replace(/[^\d.]/g, ''));
 
-    payNowButton.addEventListener('click', () => {
-        //  Replace this with your actual VNPay integration logic
-        alert('Redirecting to VNPay...'); // Placeholder
-        //  Here, you would typically send data to your server to initiate the VNPay transaction
-        //  and then redirect the user to VNPay's payment gateway.
-        // Example (Conceptual):
-
-        fetch('/api/payment/create-payment', {  //  Corrected the endpoint
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                amount: totalPrice, //  Make sure totalPrice is available
-                orderInfo: 'Spa Booking Payment', //  Description of the order
-                //  Add other necessary parameters as required by VNPay
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.redirectUrl) {
-                // Open VNPay URL in a new tab
-                window.open(data.redirectUrl, '_blank');
+        paymentMethodSelect.addEventListener('change', function() {
+            if (this.value === 'online') {
+                paymentButton.textContent = 'Pay Now';
+                paymentMessage.textContent = '';
             } else {
-                console.error('Failed to initiate VNPay payment:', data);
-                alert('Failed to initiate online payment. Please try again.');
+                paymentButton.textContent = 'Book Now';
+                paymentMessage.textContent = 'Payment will be processed at the spa.';
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while initiating payment.');
         });
 
-    });
-     document.getElementById('paywithCash').addEventListener('click', () => {
-        const paymentMessage = document.getElementById('payment-message'); // Get the element to display the message
-        // No need to send data, the data is already in the session.
-        fetch('/api/booking/confirmCash', { // Call the REST controller endpoint
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', // Important:  Use JSON content type.
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to confirm booking.');
-            }
-            return response.json(); // Parse the JSON response
-        })
-        .then(bookingId => {
-            // data should contain the bookingId
-            paymentMessage.textContent = `Booking confirmed! Your Booking ID is: ${bookingId}`;
-            alert(`Booking confirmed! Your Booking ID is: ${bookingId}`); //Show booking ID
-            // Redirect to a confirmation page or update the UI as needed.
-            // window.location.href = `/booking/confirmation?bookingId=${bookingId}`; // Example redirect
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            paymentMessage.textContent = 'Failed to confirm booking. Please try again.';
-            alert('Failed to confirm booking. Please try again.');
+        paymentButton.addEventListener('click', function() {
+            const paymentMethod = paymentMethodSelect.value;
+            const endpoint = paymentMethod === 'online'
+                ? '/api/booking/confirmOnline'
+                : '/api/booking/confirmCash';
+
+            // Disable button during processing
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Processing...';
+            paymentMessage.textContent = '';
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add CSRF token if needed
+                    // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                },
+                // No need to send data in body since backend uses session
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.json();
+            })
+            .then(bookingId => {
+                paymentMessage.textContent = `Booking confirmed! Your Booking ID is: ${bookingId}`;
+                alert(`Booking confirmed! Redirecting to your profile....`);
+                window.location.href = `/profile/history`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                paymentMessage.textContent = 'Failed to confirm booking. Please try again.';
+                alert('Failed to confirm booking: ' + error.message);
+            })
+            .finally(() => {
+                paymentButton.disabled = false;
+                paymentButton.textContent = paymentMethod === 'online' ? 'Pay Now' : 'Book Now';
+            });
         });
     });
-
 </script>
 </body>
 </html>
