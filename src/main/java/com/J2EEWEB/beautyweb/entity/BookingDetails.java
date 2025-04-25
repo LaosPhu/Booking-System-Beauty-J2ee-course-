@@ -1,5 +1,6 @@
 package com.J2EEWEB.beautyweb.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -9,22 +10,20 @@ public class BookingDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingDetailsId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
-    private Booking booking;
+    @Column(name="booking_id", nullable = false)
+    private long bookingId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    @Column(name = "service_id", nullable = false)
+    private long serviceId;
 
     // Constructors, Getters, Setters
 
     public BookingDetails() {
     }
 
-    public BookingDetails(Booking booking, Service service) {
-        this.booking = booking;
-        this.service = service;
+    public BookingDetails(long bookingId, long serviceId) {
+        this.bookingId = bookingId;
+        this.serviceId = serviceId;
     }
 
     public Long getBookingDetailsId() {
@@ -35,19 +34,19 @@ public class BookingDetails {
         this.bookingDetailsId = bookingDetailsId;
     }
 
-    public Booking getBooking() {
-        return booking;
+    public long getBookingId() {
+        return bookingId;
     }
 
-    public void setBooking(Booking booking) {
-        this.booking = booking;
+    public void setBookingId(long bookingId) {
+        this.bookingId = bookingId;
     }
 
-    public Service getService() {
-        return service;
+    public long getServiceId() {
+        return serviceId;
     }
 
-    public void setService(Service service) {
-        this.service = service;
+    public void setServiceId(long serviceId) {
+        this.serviceId = serviceId;
     }
 }

@@ -4,7 +4,7 @@ package com.J2EEWEB.beautyweb.entity;
 import java.io.Serializable;
 
 public class PaymentRes implements Serializable {
-    private String status, message,URL;
+    public String status, message,URL;
 
     public PaymentRes(){}
     public PaymentRes(String status, String message, String URL) {

@@ -33,6 +33,10 @@ public class BookingController {
         }
         return "booking";
     }
+    @GetMapping("/payment/success")
+    public String paymentsuccess(Model model){
+        return "payment/paymentsuccess";
+    }
     @PostMapping("/confirm")
     public String confirmBooking(@RequestParam String date,
                                  @RequestParam String time,
@@ -108,5 +112,24 @@ public class BookingController {
             this.totalPrice = totalPrice;
         }
     }
+    @GetMapping("/payment-success")
+    public String paymentSuccess(@RequestParam(value = "bookingId", required = false) Long bookingId, Model model) {
+        if (bookingId != null) {
+            model.addAttribute("bookingId", bookingId);
+        }
+        return "payment-success"; // Return the name of your HTML file (without the .html extension)
+    }
 
+    @GetMapping("/payment-failure")
+    public String paymentFailure(@RequestParam(value = "bookingId", required = false) Long bookingId,
+                                 @RequestParam(value = "message", required = false) String message,
+                                 Model model) {
+        if (bookingId != null) {
+            model.addAttribute("bookingId", bookingId);
+        }
+        if (message != null) {
+            model.addAttribute("message", message);
+        }
+        return "payment-failure"; // Return the name of your HTML file
+    }
 }

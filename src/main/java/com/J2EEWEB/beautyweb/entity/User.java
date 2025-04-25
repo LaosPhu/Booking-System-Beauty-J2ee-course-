@@ -32,13 +32,14 @@ public class User {
     @Column(nullable = false)
     private String role; // "user" or "admin"
 
+    @Column(nullable = true)
     private boolean status;
     // Constructors, Getters, Setters
     public User() {
     }
 
     // Constructor for a general user
-    public User(String firstName, String lastName, String email, String username, String password, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role) {
+    public User(String firstName, String lastName, String email, String username, String password, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role,boolean status) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -49,6 +50,7 @@ public class User {
         this.registrationDate = registrationDate;
         this.notes = notes;
         this.role = role;
+        this.status=true;
     }
 
 

@@ -29,7 +29,8 @@ public class Service {
 
     private String category;
 
-    private boolean status;
+    @Column(nullable = true)
+    private boolean status = true;
 
     @Column(nullable = true)
     private String imageURL;
@@ -37,7 +38,7 @@ public class Service {
     public Service() {
     }
 
-    public Service(String name, String description, int duration, BigDecimal price, String category,String ImageURL) {
+    public Service(String name, String description, int duration, BigDecimal price, String category,String ImageURL,boolean status) {
         this.name = name;
         this.description = description;
         this.duration = duration;
@@ -47,7 +48,7 @@ public class Service {
         this.status = true;
     }
 
-    public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL) {
+    public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL,boolean status) {
         this.serviceId = serviceId;
         this.name = name;
         this.description = description;
@@ -55,6 +56,7 @@ public class Service {
         this.price = price;
         this.category = category;
         this.imageURL = imageURL;
+        this.status=status;
     }
 
     public Long getServiceId() {

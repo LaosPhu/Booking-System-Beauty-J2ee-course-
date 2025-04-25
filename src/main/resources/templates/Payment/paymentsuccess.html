@@ -1,0 +1,31 @@
+<h1 class="text-2xl font-semibold text-center text-green-600 mb-6">Payment Successful!</h1>
+<div class="text-center">
+    <p class="text-gray-700 text-lg mb-4">Your payment was processed successfully.</p>
+    <p class="text-blue-600 font-semibold mb-4">Booking ID: <span id="bookingId"></span></p>
+    <p class="text-gray-700">Thank you for your purchase!</p>
+</div>
+<div class="mt-6 text-center">
+    <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+        Back to Home
+    </a>
+</div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('bookingId');
+
+    if (bookingId) {
+        document.getElementById('bookingId').textContent = bookingId;
+    } else {
+         document.body.innerHTML = `<div class="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
+            <h1 class="text-2xl font-semibold text-red-600 mb-6">Error</h1>
+            <p class="text-gray-700 text-lg mb-4">Invalid access to this page.</p>
+             <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded mt-4 inline-block">
+                Back to Home
+            </a>
+         </div>`;
+    }
+</script>
+</body>
+</html>

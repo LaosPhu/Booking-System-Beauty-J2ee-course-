@@ -250,37 +250,39 @@
 <script src="js/bootstrap-datepicker.min.js"></script>
 <script src="js/custom.js"></script>
 <script>
+    $( function() {
+           $( "#date" ).datepicker();
+       } );
+       function fetchUserProfile() {
+         fetch('/api/user/profile')
+         .then(response => {
+             if (!response.ok) {
+                 throw new Error('Failed to fetch user profile');
+             }
+             return response.json();
+         })
+         .then(userData => {
+             displayUserProfile(userData);
+         })
+         .catch(error => {
+             console.error('Error fetching user profile:', error);
+         });
+     }
 
-    function fetchUserProfile() {
-      fetch('/api/user/profile')
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Failed to fetch user profile');
-          }
-          return response.json();
-      })
-      .then(userData => {
-          displayUserProfile(userData);
-      })
-      .catch(error => {
-          console.error('Error fetching user profile:', error);
-      });
-  }
+     function displayUserProfile(userData) {
+         if(document.getElementById('name')){
+           document.getElementById('name').value = userData.lastName + ' ' +  userData.firstName;
+         }
+         if (document.getElementById('email')){
+           document.getElementById('email').value = userData.email;
+         }
+         if (document.getElementById('phone')){
+           document.getElementById('phone').value = userData.phoneNumber;
+         }
 
-  function displayUserProfile(userData) {
-      if(document.getElementById('name')){
-        document.getElementById('name').value = userData.lastName + ' ' +  userData.firstName;
-      }
-      if (document.getElementById('email')){
-        document.getElementById('email').value = userData.email;
-      }
-      if (document.getElementById('phone')){
-        document.getElementById('phone').value = userData.phoneNumber;
-      }
+     }
 
-  }
-
-  window.onload = fetchUserProfile;
+     window.onload = fetchUserProfile;
 </script>
 </body>
 </html>

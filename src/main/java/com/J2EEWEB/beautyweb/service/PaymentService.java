@@ -1,5 +1,6 @@
 package com.J2EEWEB.beautyweb.service;
 
+import com.J2EEWEB.beautyweb.entity.Booking;
 import com.J2EEWEB.beautyweb.entity.Payment;
 import com.J2EEWEB.beautyweb.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,10 @@ public class PaymentService {
     @Transactional
     public void deleteById(Long id) {
         paymentRepository.deleteById(id);
+    }
+
+    public Payment findByBooking(long booking) {
+        return paymentRepository.findByBooking(booking);
     }
 }
 

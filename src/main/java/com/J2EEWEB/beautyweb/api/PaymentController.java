@@ -1,18 +1,19 @@
 package com.J2EEWEB.beautyweb.api;
 
 import com.J2EEWEB.beautyweb.Config.Config;
-import com.J2EEWEB.beautyweb.entity.Booking; // Import your Booking entity
+import com.J2EEWEB.beautyweb.entity.Booking;
 import com.J2EEWEB.beautyweb.entity.Payment;
 import com.J2EEWEB.beautyweb.entity.PaymentRes;
 import com.J2EEWEB.beautyweb.repository.BookingRepository;
 import com.J2EEWEB.beautyweb.repository.PaymentRepository;
 import com.J2EEWEB.beautyweb.service.PaymentService;
 import com.J2EEWEB.beautyweb.service.VNPayService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest; // Use the standard Jakarta Servlet API
+import org.springframework.web.servlet.view.RedirectView; // Import RedirectView
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -32,56 +33,65 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @Autowired
-    private BookingRepository bookingRepository; // Corrected: Use BookingRepository
+    private BookingRepository bookingRepository;
 
-    @PostMapping("/create-payment") // Changed to POST - Important for sending data
+
+    @GetMapping("/getByBooking/{bookingId}")
+    public ResponseEntity<Payment> getByBooking(@PathVariable long bookingId) {
+        Payment payment = paymentService.findByBooking(bookingId);
+        return new ResponseEntity<>(payment, HttpStatus.OK);
+    }
+
+    @PostMapping("/create-payment")
     public ResponseEntity<?> createPayment(
-            @RequestBody Map<String, Object> requestBody, // Use a Map to receive the data
+            @RequestParam("totalPrice") BigDecimal totalPrice,
+            @RequestParam("bookingId") Long bookingId,
+            @RequestParam(value = "bankCode", defaultValue = "NCB") String bankCode,
             HttpServletRequest req) throws UnsupportedEncodingException {
 
-        // 1. Extract data from the request
-        Double totalPrice = (Double) requestBody.get("totalPrice"); // Get totalPrice from request
-        Long bookingId = (Long) requestBody.get("bookingId");    // Get bookingId from request.  Use Long
-        String bankCode = (String) requestBody.get("bankCode");  // Get bankCode, if provided.
 
-        // 2. Validate data (VERY IMPORTANT)
-        if (totalPrice == null || totalPrice <= 0 || bookingId == null) {
-            return ResponseEntity.badRequest().body(new PaymentRes("ERROR", "Invalid request data: totalPrice and bookingId are required and totalPrice must be greater than 0.",""));
+        // Validate bank code
+        List<String> validBankCodes = Arrays.asList("NCB", "VNBANK", "INTCARD");
+        if (!validBankCodes.contains(bankCode)) {
+            bankCode = "NCB"; // Default to NCB if invalid
+        }
+        String orderInfo = "Online payment for bookingId " + bookingId;
+        String orderType = "other";
+
+        if (totalPrice == null || bookingId == 0) {
+            return ResponseEntity.badRequest().body(new PaymentRes("ERROR", "Invalid request data: totalPrice and bookingId are required and totalPrice must be greater than 0.", ""));
         }
 
-        // 3. Fetch the booking to associate the payment (Important for your application logic)
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
         if (booking == null) {
-            return ResponseEntity.badRequest().body(new PaymentRes("ERROR", "Invalid bookingId: Booking not found.",""));
+            return ResponseEntity.badRequest().body(new PaymentRes("ERROR", "Invalid bookingId: Booking not found.", ""));
         }
 
-        // 4. Convert totalPrice to cents (Long is correct for VNPay amounts)
-        long amount = (long) (totalPrice * 100);  //  Corrected amount calculation
+        long amount = totalPrice.longValue();
 
-        // 5. Generate VNPay parameters
         String vnp_TxnRef = Config.getRandomNumber(8);
-        String vnp_IpAddr = req.getRemoteAddr(); // Use HttpServletRequest
         String vnp_TmnCode = Config.vnp_TmnCode;
-
+        String vnp_IpAddr = Config.vnp_IpAddr;
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", Config.vnp_Version);
         vnp_Params.put("vnp_Command", Config.vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-        vnp_Params.put("vnp_Amount", String.valueOf(amount)); // Use the calculated amount
-        vnp_Params.put("vnp_CurrCode", "VND");
-        if (bankCode != null && !bankCode.isEmpty()) { // Add bank code if provided
-            vnp_Params.put("vnp_BankCode", bankCode);
-        }
+        vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
+        vnp_Params.put("vnp_BankCode", bankCode);
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef); // Customize order info
+        vnp_Params.put("vnp_OrderInfo", orderInfo != null ? orderInfo : "Thanh toan don hang:" + vnp_TxnRef);
+        vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        vnp_Params.put("vnp_ReturnUrl", Config.vnp_ReturnUrl); // Use the configured return URL
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 15); // Set expiration time
+        vnp_Params.put("vnp_CurrCode", "VND");
+
+        cld.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
@@ -92,11 +102,9 @@ public class PaymentController {
         Iterator itr = fieldNames.iterator();
         while (itr.hasNext()) {
             String fieldName = (String) itr.next();
-            String fieldValue = vnp_Params.get(fieldName);  // No need to cast here
-            if (fieldValue != null && !fieldValue.isEmpty()) { // Use isEmpty()
-                // Build hash data
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
                 hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                // Build query
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString())).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
                 if (itr.hasNext()) {
                     query.append('&');
@@ -109,64 +117,145 @@ public class PaymentController {
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = Config.vnp_PayUrl + "?" + queryUrl;
 
-        // 6.  Create a Payment record in your database (Associate with the Booking)
-        Payment payment = new Payment();
-        payment.setBooking(booking); // Associate with the booking
-        payment.setAmount(BigDecimal.valueOf(totalPrice)); // Use BigDecimal for monetary values
-        payment.setTransactionId(vnp_TxnRef); // Store the transaction reference
-        payment.setPaymentDate(LocalDateTime.now());
-        payment.setPaymentStatus("PENDING");  // Initial status
-        paymentService.save(payment);
 
+        Payment checkexisting = paymentService.findByBooking(booking.getBookingId());
+        if (checkexisting == null || checkexisting.getPaymentStatus().equals("FAILED")) {
+            Payment payment = new Payment();
+            payment.setBooking(booking.getBookingId());
+            payment.setAmount(totalPrice);
+            payment.setTransactionId(vnp_TxnRef);
+            payment.setPaymentDate(LocalDateTime.now());
+            payment.setPaymentStatus("PENDING");
+            paymentService.save(payment);
+        } else {
+            checkexisting.setAmount(totalPrice);
+            checkexisting.setTransactionId(vnp_TxnRef);
+            checkexisting.setPaymentDate(LocalDateTime.now());
+            checkexisting.setPaymentStatus("PENDING");
+            paymentService.save(checkexisting);
+        }
         PaymentRes paymentRes = new PaymentRes();
         paymentRes.setStatus("OK");
         paymentRes.setMessage("Payment initiated.  Redirecting to VNPay.");
-        paymentRes.setURL(paymentUrl);  //  Return the URL
+        paymentRes.setURL(paymentUrl);
         return ResponseEntity.status(HttpStatus.OK).body(paymentRes);
     }
 
-    @GetMapping("/vnpay-callback")  //  Handle the VNPay return
-    public ResponseEntity<?> vnpayCallback(HttpServletRequest request) {
+    @GetMapping("/vnpay-callback")
+    public RedirectView vnpayCallback(HttpServletRequest request) {
         Map<String, String> vnp_Params = new HashMap<>();
-        // Get all parameters from the request
         request.getParameterNames().asIterator().forEachRemaining(key -> {
             String value = request.getParameter(key);
             vnp_Params.put(key, value);
         });
 
-        // Get the secure hash and remove it from the parameters.
         String vnp_SecureHash = vnp_Params.get("vnp_SecureHash");
         vnp_Params.remove("vnp_SecureHash");
 
-        // 1.  Verify the signature
-      //  boolean isSignatureValid = vnPayService.validateSignature(vnp_Params, vnp_SecureHash);
+        boolean isSignatureValid = vnPayService.validateSignature(vnp_Params, vnp_SecureHash);
 
-       // if (isSignatureValid) {
-            // Signature is valid.  Process the payment result.
+        RedirectView redirectView = new RedirectView(); // Use RedirectView
+
+        if (isSignatureValid) {
             String vnp_TransactionStatus = vnp_Params.get("vnp_TransactionStatus");
-            String vnp_TxnRef = vnp_Params.get("vnp_TxnRef");  // Get the transaction reference
+            String vnp_TxnRef = vnp_Params.get("vnp_TxnRef");
+            String vnp_ResponseCode = vnp_Params.get("vnp_ResponseCode"); // Get the response code.
+            String vnp_Message = vnp_Params.get("vnp_Message");  // Get the message
 
-            // Find the Payment by transaction code.
             Payment payment = paymentService.findByTransactionId(vnp_TxnRef);
 
             if (payment != null) {
                 if ("00".equals(vnp_TransactionStatus)) {
                     payment.setPaymentStatus("SUCCESS");
-                    //payment.set(vnp_Params.get("vnp_ResponseCode"));
+                    payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
-                    return ResponseEntity.ok("Payment successful!");
+                    // Redirect to a success page
+                    redirectView.setUrl("/Payment/paymentsuccess?bookingId=" + payment.getBooking()); //  success URL
                 } else {
                     payment.setPaymentStatus("FAILED");
-                    //payment.setResponseCode(vnp_Params.get("vnp_ResponseCode"));
+                    payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
-                    return ResponseEntity.badRequest().body("Payment failed: " + vnp_Params.get("vnp_Message"));
+                    // Redirect to a failure page, include error details
+                    redirectView.setUrl("/Payment/paymentfailure?bookingId=" + payment.getBooking() + "&message=" + URLEncoder.encode(vnp_Message, StandardCharsets.UTF_8)); // failure URL
                 }
             } else {
-                return ResponseEntity.badRequest().body("Transaction not found.");
+                // Handle the case where the transaction is not found.  This is important!
+                redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Transaction not found.", StandardCharsets.UTF_8));
             }
-        } //else {
-           // return ResponseEntity.badRequest().body("Invalid signature.");
-       // }
+        } else {
+            //  Invalid signature.
+            redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Invalid signature.", StandardCharsets.UTF_8));
+        }
+        return redirectView;
+    }
+    @PostMapping("/test-payment")
+    public ResponseEntity<?> testPayment(
+            @RequestParam("totalPrice") BigDecimal totalPrice,
+            HttpServletRequest req) throws UnsupportedEncodingException {
+
+
+        String bankCode = "INTCARD";
+        String orderType = "other";
+        String orderInfo = "";
+
+
+        long amount = totalPrice.longValue();
+
+        String vnp_TxnRef = Config.getRandomNumber(8);
+        String vnp_TmnCode = Config.vnp_TmnCode;
+        String vnp_IpAddr = Config.vnp_IpAddr;
+        Map<String, String> vnp_Params = new HashMap<>();
+        vnp_Params.put("vnp_Version", Config.vnp_Version);
+        vnp_Params.put("vnp_Command", Config.vnp_Command);
+        vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+        vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
+        vnp_Params.put("vnp_BankCode", "VNPAYQR");
+        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo",  "Thanh toan don hang:" + vnp_TxnRef);
+        vnp_Params.put("vnp_OrderType", orderType);
+        vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        vnp_Params.put("vnp_ReturnUrl", Config.vnp_ReturnUrl); // Use the configured return URL
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String vnp_CreateDate = formatter.format(cld.getTime());
+        vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+
+        vnp_Params.put("vnp_CurrCode", "VND");
+
+        cld.add(Calendar.MINUTE, 15);
+        String vnp_ExpireDate = formatter.format(cld.getTime());
+        vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+
+        List fieldNames = new ArrayList(vnp_Params.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        StringBuilder query = new StringBuilder();
+        Iterator itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String fieldName = (String) itr.next();
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString())).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                if (itr.hasNext()) {
+                    query.append('&');
+                    hashData.append('&');
+                }
+            }
+        }
+        String queryUrl = query.toString();
+        String vnp_SecureHash = Config.hmacSHA512(Config.secretKey, hashData.toString());
+        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
+        String paymentUrl = Config.vnp_PayUrl + "?" + queryUrl;
+
+
+
+        PaymentRes paymentRes = new PaymentRes();
+        paymentRes.setStatus("OK");
+        paymentRes.setMessage("Payment initiated.  Redirecting to VNPay.");
+        paymentRes.setURL(paymentUrl);
+        return ResponseEntity.status(HttpStatus.OK).body(paymentRes);
     }
 
-
+}
