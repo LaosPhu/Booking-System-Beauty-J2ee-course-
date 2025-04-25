@@ -35,9 +35,10 @@ public class Service {
     private String imageURL;
     // Constructors, Getters, Setters
     public Service() {
+        this.status = true;
     }
 
-    public Service(String name, String description, int duration, BigDecimal price, String category,String ImageURL) {
+    public Service(String name, String description, int duration, BigDecimal price, String category,String imageURL) {
         this.name = name;
         this.description = description;
         this.duration = duration;
@@ -55,6 +56,7 @@ public class Service {
         this.price = price;
         this.category = category;
         this.imageURL = imageURL;
+        this.status = true;
     }
 
     public Long getServiceId() {
