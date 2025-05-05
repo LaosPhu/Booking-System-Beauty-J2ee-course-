@@ -137,7 +137,24 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session expired. Please log in again.");
     }
+//    @GetMapping("/current")
+//    public ResponseEntity<?> getCurrentUser(HttpSession session) {
+//        String username = (String) session.getAttribute("username");
+//        Optional<User> user = userRepository.findByUsername(username);
+//        if (user.get() == null) {
+//            return ResponseEntity.status(401).build();
+//        }
+//        return ResponseEntity.ok(Map.of(
+//                "username", user.getUsername(),
+//                "role", user.getRole()
+//        ));
+//    }
 
+    public User GetUserfromUsername(HttpSession session){
+        String username = (String) session.getAttribute("username");
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.get();
+    }
 }
 
 
