@@ -65,7 +65,8 @@
                 <select id="service" class="wide">
                     <option value="">Choose a service</option>
                     <th:block th:each="service : ${services}">
-                        <option th:value="${service.serviceId}"
+                        <option th:if="${service.status}"
+                                th:value="${service.serviceId}"
                                 th:data-name="${service.name}"
                                 th:data-description="${service.description}"
                                 th:data-duration="${service.duration}"
@@ -250,9 +251,44 @@
 <script src="js/bootstrap-datepicker.min.js"></script>
 <script src="js/custom.js"></script>
 <script>
-    $( function() {
-           $( "#date" ).datepicker();
-       } );
+    $(function () {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Đảm bảo so sánh theo ngày, bỏ qua giờ, phút, giây
+
+        $("#date").datepicker({
+            // Kiểm tra ngày khi người dùng chọn
+            onSelect: function (dateText) {
+                const selectedDate = new Date(dateText);
+                if (selectedDate < today) {
+                    alert("Bạn chỉ được chọn ngày từ hôm nay trở đi!");
+                    $(this).val(''); // Đặt lại giá trị của input nếu ngày nhỏ hơn hôm nay
+                }
+            }
+        });
+
+        $("#request").submit(function (event) {
+            const selectedDate = new Date($("#date").val());
+            const selectedTime = $("#time").val();
+
+            // Kiểm tra ngày
+            if (selectedDate < today) {
+                alert("Bạn chỉ được chọn ngày từ hôm nay trở đi!");
+                event.preventDefault(); // Ngừng gửi form
+                return;
+            }
+
+            // Kiểm tra giờ
+            const timeParts = selectedTime.split(':');
+            const selectedHour = parseInt(timeParts[0]);
+            const selectedMinute = parseInt(timeParts[1]);
+
+            if (selectedHour < 8 || (selectedHour === 22 && selectedMinute > 0) || selectedHour > 22) {
+                alert("Bạn chỉ có thể đặt lịch từ 8h sáng đến 10h tối!");
+                event.preventDefault(); // Ngừng gửi form
+            }
+        });
+    });
+
        function fetchUserProfile() {
          fetch('/api/user/profile')
          .then(response => {

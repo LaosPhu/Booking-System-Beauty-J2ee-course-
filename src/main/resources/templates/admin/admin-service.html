@@ -304,111 +304,196 @@
                 </div>
             </div>
         </div>
+        <!-- Modal for editing service -->
+        <div class="modal fade" id="edit-service-modal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Chỉnh sửa dịch vụ</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-id">
+                        <input type="text" id="edit-name" class="form-control mb-2" placeholder="Tên dịch vụ">
+                        <input type="text" id="edit-category" class="form-control mb-2" placeholder="Danh mục">
+                        <textarea id="edit-description" class="form-control mb-2" placeholder="Mô tả"></textarea>
+                        <input type="number" id="edit-duration" class="form-control mb-2" placeholder="Thời lượng (phút)">
+                        <input type="text" id="edit-image" class="form-control mb-2" placeholder="URL hình ảnh">
+                        <input type="number" id="edit-price" class="form-control mb-2" placeholder="Giá (VNĐ)">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" id="save-edit-btn" class="btn btn-success">Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 </div>
 <script>
-    fetch('/api/service/getAll')
-    .then(response => response.json())
-    .then(data => {
-        // Lọc các dịch vụ có status = true
-        const filteredServices = data.filter(service => service.status === true);
+    document.addEventListener("DOMContentLoaded", function () {
+        // Fetch danh sách dịch vụ
+        fetch('/api/service/getAll')
+            .then(response => response.json())
+            .then(data => {
+                // Lọc các dịch vụ có status = true
+                const filteredServices = data.filter(service => service.status === true);
 
-        // Tiến hành render các dịch vụ vào bảng
-        const tableBody = document.querySelector("table tbody");
-        tableBody.innerHTML = '';  // Xóa nội dung cũ
+                // Render vào bảng
+                const tableBody = document.querySelector("table tbody");
+                tableBody.innerHTML = '';
 
-        filteredServices.forEach(service => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${service.serviceId}</td>
-                <td>${service.name}</td>
-                <td>${service.category}</td>
-                <td>${service.description}</td>
-                <td>${service.duration}</td>
-                <td>${service.imageURL}</td>
-                <td>${service.price}</td>
-                <td><button class="delete-btn" data-id="${service.serviceId}">Delete</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
+                filteredServices.forEach(service => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${service.serviceId}</td>
+                        <td>${service.name}</td>
+                        <td>${service.category}</td>
+                        <td>${service.description}</td>
+                        <td>${service.duration}</td>
+                        <td>${service.imageURL}</td>
+                        <td>${service.price}</td>
+                        <td>
+                            <button class="edit-btn btn btn-warning btn-sm"
+                                data-id="${service.serviceId}"
+                                data-name="${service.name}"
+                                data-category="${service.category}"
+                                data-description="${service.description}"
+                                data-duration="${service.duration}"
+                                data-image="${service.imageURL}"
+                                data-price="${service.price}">
+                            Edit</button>
+                            <button class="delete-btn btn btn-danger btn-sm" data-id="${service.serviceId}">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
 
-        // Lắng nghe sự kiện click vào nút Delete
-        const deleteButtons = document.querySelectorAll('.delete-btn');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const serviceId = this.getAttribute('data-id');
-                deleteService(serviceId);
+                // Gán lại sự kiện Edit sau khi render
+                attachEditEvents();
+                // Gán lại sự kiện Delete
+                attachDeleteEvents();
+            })
+            .catch(error => console.error('Error fetching services:', error));
+
+        // Hàm xử lý xóa dịch vụ (PUT đổi status = false)
+        function deleteService(serviceId) {
+            fetch(`/api/service/delete/${serviceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    alert('Service deleted successfully');
+                    location.reload();
+                } else {
+                    alert('Service not found');
+                }
+            })
+            .catch(error => console.error('Error deleting service:', error));
+        }
+
+        // Thêm dịch vụ mới
+        document.getElementById('submit-service-btn').addEventListener('click', function () {
+            const serviceData = {
+                name: document.getElementById('service-name').value,
+                description: document.getElementById('service-description').value,
+                duration: document.getElementById('service-duration').value,
+                price: parseFloat(document.getElementById('service-price').value),
+                category: document.getElementById('service-category').value,
+                imageURL: document.getElementById('service-image').value
+            };
+
+            fetch('/api/service/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(serviceData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    alert('Service added successfully!');
+                    $('#add-service-modal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Failed to add service');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error adding the service.');
             });
         });
-    })
-    .catch(error => console.error('Error fetching services:', error));
 
-// Hàm xử lý việc gọi API để xóa dịch vụ (chuyển status = false)
-function deleteService(serviceId) {
-    fetch(`/api/service/delete/${serviceId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data) {
-            alert('Service deleted successfully');
-            location.reload();  // Reload trang để cập nhật danh sách
-        } else {
-            alert('Service not found');
-        }
-    })
-    .catch(error => console.error('Error deleting service:', error));
-}
+        // Hàm xử lý gán sự kiện Edit
+        function attachEditEvents() {
+            document.querySelectorAll(".edit-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    document.getElementById("edit-id").value = btn.getAttribute("data-id");
+                    document.getElementById("edit-name").value = btn.getAttribute("data-name");
+                    document.getElementById("edit-category").value = btn.getAttribute("data-category");
+                    document.getElementById("edit-description").value = btn.getAttribute("data-description");
+                    document.getElementById("edit-duration").value = btn.getAttribute("data-duration");
+                    document.getElementById("edit-image").value = btn.getAttribute("data-image");
+                    document.getElementById("edit-price").value = btn.getAttribute("data-price");
 
+                    $('#edit-service-modal').modal('show');
+                });
+            });
+        }
+
+        // Hàm xử lý gán sự kiện Delete
+        function attachDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const serviceId = this.getAttribute('data-id');
+                    deleteService(serviceId);
+                });
+            });
+        }
+
+        // Gửi PUT khi nhấn "Lưu" để cập nhật dịch vụ
+        document.getElementById("save-edit-btn").addEventListener("click", function () {
+            const id = document.getElementById("edit-id").value;
+            const updatedService = {
+                name: document.getElementById("edit-name").value,
+                category: document.getElementById("edit-category").value,
+                description: document.getElementById("edit-description").value,
+                duration: document.getElementById("edit-duration").value,
+                imageURL: document.getElementById("edit-image").value,
+                price: document.getElementById("edit-price").value
+            };
+
+            fetch(`/api/service/edit/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedService)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Cập nhật thành công!');
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi cập nhật.');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating service:', error);
+            });
+        });
+    });
 </script>
+
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById('submit-service-btn').addEventListener('click', function() {
-    const serviceName = document.getElementById('service-name').value;
-    const serviceDescription = document.getElementById('service-description').value;
-    const serviceDuration = document.getElementById('service-duration').value;
-    const servicePrice = document.getElementById('service-price').value;
-    const serviceCategory = document.getElementById('service-category').value;
-    const serviceImage = document.getElementById('service-image').value;
-
-    const serviceData = {
-        name: serviceName,
-        description: serviceDescription,
-        duration: serviceDuration,
-        price: parseFloat(servicePrice),
-        category: serviceCategory,
-        imageURL: serviceImage
-    };
-
-    fetch('/api/service/add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(serviceData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data) {
-            alert('Service added successfully!');
-            // Close the modal if necessary
-            $('#add-service-modal').modal('hide');
-            // Optionally, update the UI or reload the service list
-        } else {
-            alert('Failed to add service');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('There was an error adding the service.');
-    });
-});
-
-</script>
 
 </body>
 </html>

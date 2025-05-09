@@ -34,6 +34,31 @@ public class ServiceController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PutMapping("/edit/{serviceId}")
+    public ResponseEntity<Service> updateService(@PathVariable Long serviceId, @RequestBody Service updatedService) {
+        Optional<Service> serviceOptional = serviceRepository.findById(serviceId);
+        if (serviceOptional.isPresent()) {
+            Service service = serviceOptional.get();
+            // Cập nhật các trường
+            service.setName(updatedService.getName());
+            service.setDescription(updatedService.getDescription());
+            service.setDuration(updatedService.getDuration());
+            service.setPrice(updatedService.getPrice());
+            service.setCategory(updatedService.getCategory());
+            service.setImageURL(updatedService.getImageURL());
+
+            // Giữ nguyên status hiện tại hoặc có thể cập nhật nếu muốn
+            // service.setStatus(updatedService.isStatus());  // Nếu cần
+
+            serviceRepository.save(service);
+            return new ResponseEntity<>(service, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+
+
     @PutMapping("/delete/{serviceId}")
     public ResponseEntity<Service> deleteService(@PathVariable Long serviceId) {
         Optional<Service> serviceOptional = serviceRepository.findById(serviceId);
