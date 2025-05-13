@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login and Signup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f4f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        width: 400px;
+        max-width: 100%;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="email"]:focus {
+        border-color: #4CAF50;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .login-btn {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .login-btn:hover {
+        background-color: #45a049;
+    }
+
+    .signup-btn {
+        background-color: #007BFF;
+        color: white;
+    }
+
+    .signup-btn:hover {
+        background-color: #0056b3;
+    }
+
+
+    .form-link {
+        text-align: center;
+        margin-top: 15px;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .form-link a {
+        color: #007BFF;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .form-link a:hover {
+        color: #0056b3;
+    }
+
+    #error-message {
+        color: red;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="login-form">
+    <h2>Login</h2>
+    <div id="error-message"></div>
+    <form>
+      <div class="form-group">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" name="username" placeholder="Enter your username">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="password" placeholder="Enter your password">
+      </div>
+      <button type="submit" class="btn login-btn">Login</button>
+    </form>
+    <div class="form-link">
+      <a href="#" id="show-signup">Don't have an account? Sign up</a>
+    </div>
+  </div>
+
+  <div id="signup-form" style="display: none;">
+    <h2>Sign Up</h2>
+    <form>
+      <div class="form-group">
+        <label for="signup-name">Name</label>
+        <input type="text" id="signup-name" name="name" placeholder="Enter your name">
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" name="email" placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" name="password" placeholder="Enter your password">
+      </div>
+      <button type="submit" class="btn signup-btn">Sign Up</button>
+    </form>
+    <div class="form-link">
+      <a href="#" id="show-login">Already have an account? Login</a>
+    </div>
+  </div>
+</div>
+<script>
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const showSignupLink = document.getElementById('show-signup');
+  const showLoginLink = document.getElementById('show-login');
+  const errorMessage = document.getElementById('error-message');
+
+  showSignupLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      signupForm.style.display = 'block';
+      errorMessage.textContent = '';
+  });
+
+  showLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      signupForm.style.display = 'none';
+      loginForm.style.display = 'block';
+      errorMessage.textContent = '';
+  });
+
+  loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = e.target.elements.username.value.trim();
+      const password = e.target.elements.password.value.trim();
+
+      if (!username || !password) {
+          errorMessage.textContent = 'Please fill in all fields.';
+          return;
+      }
+      // Use the provided API endpoint for authentication
+      fetch(`/api/user/login?username=${username}&password=${password}`, {  // Changed to the correct API endpoint
+          method: 'POST', // Use POST for login
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Authentication failed');
+          }
+          return response.json();
+      })
+      .then(data => {
+          // Store user information in sessionStorage
+          sessionStorage.setItem('isLoggedIn', 'true');
+          sessionStorage.setItem('userRole', data.role);
+          sessionStorage.setItem('username', data.username);
+          // Redirect to the index page
+       // Redirect based on user role
+          if (data.role === 'admin') {
+              window.location.href = '/admin';
+          } else {
+              window.location.href = '/';
+          }
+      })
+      .catch(error => {
+          errorMessage.textContent = 'Error: ' + error.message;
+      });
+      e.target.reset();
+  });
+
+  signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = e.target.elements.name.value.trim();
+      const email = e.target.elements.email.value.trim();
+      const password = e.target.elements.password.value.trim();
+
+      if (!name || !email || !password) {
+          errorMessage.textContent = 'Please fill in all fields.';
+          return;
+      }
+      // Simulate a successful signup
+      // Store the credentials in localStorage (INSECURE FOR REAL APPS)
+      localStorage.setItem('username', email); // Use email as username for simplicity
+      localStorage.setItem('password', password);
+      alert('Signup successful! You can now log in.');
+      e.target.reset();
+      loginForm.style.display = 'block';
+      signupForm.style.display = 'none';
+
+  });
+
+</script>
+</body>
+</html>
