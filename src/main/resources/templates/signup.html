@@ -119,7 +119,8 @@
 </head>
 <body>
 <div class="container">
-  <div id="login-form">
+  <!-- Đăng nhập giữ nguyên -->
+  <div id="login-form" style="display: none;">
     <h2>Login</h2>
     <div id="error-message"></div>
     <form>
@@ -138,20 +139,38 @@
     </div>
   </div>
 
-  <div id="signup-form" style="display: none;">
+  <!-- FORM ĐĂNG KÝ CHỈNH SỬA -->
+  <div id="signup-form">
     <h2>Sign Up</h2>
-    <form>
+    <div id="signup-message"></div>
+    <form id="signupForm">
       <div class="form-group">
-        <label for="signup-name">Name</label>
-        <input type="text" id="signup-name" name="name" placeholder="Enter your name">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
       </div>
       <div class="form-group">
         <label for="signup-email">Email</label>
-        <input type="email" id="signup-email" name="email" placeholder="Enter your email">
+        <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
       </div>
       <div class="form-group">
-        <label for="signup-password">Password</label>
-        <input type="password" id="signup-password" name="password" placeholder="Enter your password">
+        <label for="phoneNumber">Phone Number (10 digits)</label>
+        <input type="text" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" required>
+      </div>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" name="address" placeholder="Enter your address" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-username">Username</label>
+        <input type="text" id="signup-username" name="username" placeholder="Enter your username" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password (min 8 chars)</label>
+        <input type="password" id="signup-password" name="password" placeholder="Enter your password" required>
       </div>
       <button type="submit" class="btn signup-btn">Sign Up</button>
     </form>
@@ -160,18 +179,22 @@
     </div>
   </div>
 </div>
+
+<!-- SCRIPT ĐÃ CHỈNH SỬA -->
 <script>
   const loginForm = document.getElementById('login-form');
   const signupForm = document.getElementById('signup-form');
   const showSignupLink = document.getElementById('show-signup');
   const showLoginLink = document.getElementById('show-login');
   const errorMessage = document.getElementById('error-message');
+  const signupMessage = document.getElementById('signup-message');
 
   showSignupLink.addEventListener('click', (e) => {
       e.preventDefault();
       loginForm.style.display = 'none';
       signupForm.style.display = 'block';
       errorMessage.textContent = '';
+      signupMessage.textContent = '';
   });
 
   showLoginLink.addEventListener('click', (e) => {
@@ -179,6 +202,7 @@
       signupForm.style.display = 'none';
       loginForm.style.display = 'block';
       errorMessage.textContent = '';
+      signupMessage.textContent = '';
   });
 
   loginForm.addEventListener('submit', (e) => {
@@ -190,56 +214,87 @@
           errorMessage.textContent = 'Please fill in all fields.';
           return;
       }
-      // Use the provided API endpoint for authentication
-      fetch(`/api/user/login?username=${username}&password=${password}`, {  // Changed to the correct API endpoint
-          method: 'POST', // Use POST for login
+
+      fetch(`/api/user/login?username=${username}&password=${password}`, {
+          method: 'POST',
       })
       .then(response => {
-          if (!response.ok) {
-              throw new Error('Authentication failed');
-          }
+          if (!response.ok) throw new Error('Authentication failed');
           return response.json();
       })
       .then(data => {
-          // Store user information in sessionStorage
           sessionStorage.setItem('isLoggedIn', 'true');
           sessionStorage.setItem('userRole', data.role);
           sessionStorage.setItem('username', data.username);
-          // Redirect to the index page
-       // Redirect based on user role
-          if (data.role === 'admin') {
-              window.location.href = '/admin';
-          } else {
-              window.location.href = '/';
-          }
+
+          window.location.href = data.role === 'admin' ? '/admin' : '/';
       })
       .catch(error => {
           errorMessage.textContent = 'Error: ' + error.message;
       });
+
       e.target.reset();
   });
 
-  signupForm.addEventListener('submit', (e) => {
+  document.getElementById('signupForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = e.target.elements.name.value.trim();
-      const email = e.target.elements.email.value.trim();
-      const password = e.target.elements.password.value.trim();
 
-      if (!name || !email || !password) {
-          errorMessage.textContent = 'Please fill in all fields.';
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const username = document.getElementById('signup-username').value.trim();
+      const password = document.getElementById('signup-password').value.trim();
+
+      signupMessage.style.color = 'red';
+
+      // Validate
+      if (!firstName || !lastName || !email || !phoneNumber || !address || !username || !password) {
+          signupMessage.textContent = 'Please fill in all fields.';
           return;
       }
-      // Simulate a successful signup
-      // Store the credentials in localStorage (INSECURE FOR REAL APPS)
-      localStorage.setItem('username', email); // Use email as username for simplicity
-      localStorage.setItem('password', password);
-      alert('Signup successful! You can now log in.');
-      e.target.reset();
-      loginForm.style.display = 'block';
-      signupForm.style.display = 'none';
 
+      if (!/^\d{10}$/.test(phoneNumber)) {
+          signupMessage.textContent = 'Phone number must be 10 digits.';
+          return;
+      }
+
+      if (password.length < 8) {
+          signupMessage.textContent = 'Password must be at least 8 characters.';
+          return;
+      }
+
+      // Build data
+      const userData = {
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          address,
+          username,
+          password
+      };
+
+      fetch('/api/user/signup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(userData)
+      })
+      .then(res => res.json().then(data => ({ status: res.status, body: data })))
+      .then(({ status, body }) => {
+          if (status >= 200 && status < 300) {
+          signupMessage.style.color = 'green';
+          signupMessage.textContent = body.message || 'Signup successful!';
+          document.getElementById('signupForm').reset();
+      } else {
+          signupMessage.textContent = body.error || 'Signup failed.';
+      }
+      })
+      .catch(() => {
+          signupMessage.textContent = 'Error sending request.';
+      });
   });
-
 </script>
 </body>
 </html>

@@ -155,8 +155,24 @@
                     <input id="date" class="form-control" type="text" name="date" placeholder="Date" >
                 </div>
                 <div class="col-md-6">
-                    <label for="time">Time:</label>
-                    <input id="time" class="form-control" type="time" name="time" placeholder="Time" >
+                    <label for="time">Chọn giờ:</label>
+                    <select id="time" name="time">
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+                        <option value="20:00">20:00</option>
+                        <option value="21:00">21:00</option>
+                        <option value="22:00">22:00</option>
+                    </select>
                 </div>
                 <div class="col-md-12">
                     <label for="name">Your Name:</label>
@@ -280,8 +296,7 @@
                 }
             }
         });
-
-        // Gán hàm submit cho form
+        // Chỉnh sửa trong hàm submit
         $("#request").submit(function (event) {
             event.preventDefault(); // Ngăn submit mặc định
 
@@ -295,11 +310,8 @@
             }
 
             // Kiểm tra giờ
-            const timeParts = selectedTime.split(':');
-            const selectedHour = parseInt(timeParts[0]);
-            const selectedMinute = parseInt(timeParts[1]);
-
-            if (selectedHour < 8 || (selectedHour === 22 && selectedMinute > 0) || selectedHour > 22) {
+            const selectedHour = parseInt(selectedTime.split(':')[0]); // Lấy giờ
+            if (selectedHour < 8 || selectedHour > 22) {
                 alert("Bạn chỉ có thể đặt lịch từ 8h sáng đến 10h tối!");
                 return;
             }
@@ -321,6 +333,7 @@
                     alert("Không thể kiểm tra khung giờ. Vui lòng thử lại.");
                 });
         });
+
 
         // Gọi fetchUserProfile khi load trang
         fetchUserProfile();
@@ -354,7 +367,6 @@
         }
     }
 </script>
-
 
 </body>
 </html>

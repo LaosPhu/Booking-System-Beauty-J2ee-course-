@@ -1,6 +1,10 @@
 package com.J2EEWEB.beautyweb.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,15 +23,21 @@ public class User {
     private String lastName;
 
     @Column(nullable = false, unique = true)
+    @Email
+    @NotBlank
     private String email;
 
+    @Pattern(regexp = "\\d{10}", message = "Phone number must be exactly 10 digits")
     private String phoneNumber;
+
+    @NotBlank
     private String address;
+    @NotBlank
     private String username;
+    @NotBlank
     private String password;
     private LocalDateTime registrationDate;
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+
 
     @Column(nullable = false)
     private String role; // "user" or "admin"
@@ -48,7 +58,6 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.registrationDate = registrationDate;
-        this.notes = notes;
         this.role = role;
         this.status=true;
     }
@@ -125,14 +134,6 @@ public class User {
 
     public void setRegistrationDate(LocalDateTime registrationDate) {
         this.registrationDate = registrationDate;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 
     public String getRole() {
