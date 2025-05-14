@@ -314,8 +314,15 @@ public class BookingRestController {
     }
     @GetMapping("/check-slot")
     public ResponseEntity<Map<String, Object>> checkBookingSlot(@RequestParam String date,
-                                                                @RequestParam String time) {
+                                                                @RequestParam String time,
+                                                                HttpSession session) {
         try {
+            User currentUser = (User) session.getAttribute("currentUser");
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
+            }
+
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -323,17 +330,22 @@ public class BookingRestController {
             LocalTime bookingTime = LocalTime.parse(time, timeFormatter);
             LocalDateTime appointmentDateTime = LocalDateTime.of(bookingDate, bookingTime);
 
-            long count = bookingRepository.countByAppointmentDateTime(appointmentDateTime);
+            boolean alreadyBooked = bookingRepository.existsByCustomerAndAppointmentDateTime(currentUser, appointmentDateTime);
+
+            long bookingCount = bookingRepository.countByAppointmentDateTime(appointmentDateTime);
+            boolean slotFull = bookingCount >= 3;
 
             Map<String, Object> response = new HashMap<>();
-            response.put("count", count);
-            response.put("available", count < 3); // true nếu chưa đủ 3 người
+            response.put("alreadyBooked", alreadyBooked);
+            response.put("available", !alreadyBooked && !slotFull);
 
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Invalid date or time format"));
         }
     }
+
 
 }

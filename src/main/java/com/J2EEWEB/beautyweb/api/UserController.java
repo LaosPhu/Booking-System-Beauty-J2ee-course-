@@ -56,6 +56,7 @@ public class UserController {
                 session.setAttribute("isLoggedIn", true);
                 session.setAttribute("userRole", user.get().getRole());
                 session.setAttribute("username", username); // Store username
+                session.setAttribute("currentUser", user.get());
                 Map<String, Object> response = new HashMap<>();
                 response.put("role", user.get().getRole());
                 response.put("username", username);
