@@ -39,6 +39,9 @@ public class PaymentController {
     @GetMapping("/getByBooking/{bookingId}")
     public ResponseEntity<Payment> getByBooking(@PathVariable long bookingId) {
         Payment payment = paymentService.findByBooking(bookingId);
+        if(payment ==null){
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>(payment, HttpStatus.OK);
     }
 
@@ -170,21 +173,21 @@ public class PaymentController {
                     payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
                     // Redirect to a success page
-                    redirectView.setUrl("/Payment/paymentsuccess?bookingId=" + payment.getBooking()); //  success URL
+                    redirectView.setUrl("/payment/paymentsuccess"); //  success URL
                 } else {
                     payment.setPaymentStatus("FAILED");
                     payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
                     // Redirect to a failure page, include error details
-                    redirectView.setUrl("/Payment/paymentfailure?bookingId=" + payment.getBooking() + "&message=" + URLEncoder.encode(vnp_Message, StandardCharsets.UTF_8)); // failure URL
+                    redirectView.setUrl("/payment/paymentfailure" ); // failure URL
                 }
             } else {
                 // Handle the case where the transaction is not found.  This is important!
-                redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Transaction not found.", StandardCharsets.UTF_8));
+                redirectView.setUrl("/payment/paymentfailure");
             }
         } else {
             //  Invalid signature.
-            redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Invalid signature.", StandardCharsets.UTF_8));
+            redirectView.setUrl("/payment/paymentfailure" );
         }
         return redirectView;
     }

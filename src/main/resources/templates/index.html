@@ -587,5 +587,17 @@
                   console.error('Error fetching user profile:', error);
               });
       }
+   function updatebooking(){
+         fetch('/api/booking/update-status')
+            .then(response => {
+               if(!response.ok){
+                  throw new Error('Failed to update booking status');
+               }
+               return response.json();
+
+              .catch(error => {
+                  console.error('Error fetching user profile:', error);
+              });
+   }
 </script>
 </html>
