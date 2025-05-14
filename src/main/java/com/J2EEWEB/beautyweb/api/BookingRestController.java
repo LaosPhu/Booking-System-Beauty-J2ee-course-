@@ -492,6 +492,7 @@ public class BookingRestController {
         return body.toString();
     }
 
+
     private static class BookingDTO {
         private Long bookingId;
         private UserDTO customer;
