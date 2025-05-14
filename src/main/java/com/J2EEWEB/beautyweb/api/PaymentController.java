@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView; // Import RedirectView
 import java.io.UnsupportedEncodingException;
@@ -20,7 +21,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -35,10 +40,15 @@ public class PaymentController {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Autowired
+    private JavaMailSender mailSender; // Add this
 
     @GetMapping("/getByBooking/{bookingId}")
     public ResponseEntity<Payment> getByBooking(@PathVariable long bookingId) {
         Payment payment = paymentService.findByBooking(bookingId);
+        if(payment ==null){
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>(payment, HttpStatus.OK);
     }
 
@@ -169,22 +179,23 @@ public class PaymentController {
                     payment.setPaymentStatus("SUCCESS");
                     payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
+                    sendPaymentSuccessEmail(payment.getBooking(),payment);
                     // Redirect to a success page
-                    redirectView.setUrl("/Payment/paymentsuccess?bookingId=" + payment.getBooking()); //  success URL
+                    redirectView.setUrl("/payment/paymentsuccess"); //  success URL
                 } else {
                     payment.setPaymentStatus("FAILED");
                     payment.setResponseCode(vnp_ResponseCode);
                     paymentService.save(payment);
                     // Redirect to a failure page, include error details
-                    redirectView.setUrl("/Payment/paymentfailure?bookingId=" + payment.getBooking() + "&message=" + URLEncoder.encode(vnp_Message, StandardCharsets.UTF_8)); // failure URL
+                    redirectView.setUrl("/payment/paymentfailure" ); // failure URL
                 }
             } else {
                 // Handle the case where the transaction is not found.  This is important!
-                redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Transaction not found.", StandardCharsets.UTF_8));
+                redirectView.setUrl("/payment/paymentfailure");
             }
         } else {
             //  Invalid signature.
-            redirectView.setUrl("/Payment/paymentfailure?message=" + URLEncoder.encode("Invalid signature.", StandardCharsets.UTF_8));
+            redirectView.setUrl("/payment/paymentfailure" );
         }
         return redirectView;
     }
@@ -257,5 +268,48 @@ public class PaymentController {
         paymentRes.setURL(paymentUrl);
         return ResponseEntity.status(HttpStatus.OK).body(paymentRes);
     }
+    private void sendPaymentSuccessEmail(Long bookingId, Payment payment) {
+        Optional<Booking> bookingOptional = bookingRepository.getBookingByBookingId(bookingId);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            String recipientAddress = booking.getCustomer().getEmail(); // Get user email from booking.
+            String subject = "Payment Confirmation";
 
+            // Use the helper method to build the email body.
+            String body = buildPaymentSuccessEmailBody(booking, payment);
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(recipientAddress);
+            message.setSubject(subject);
+            message.setText(body);
+
+            try {
+                mailSender.send(message);
+                System.out.println("Email sent successfully to " + recipientAddress);
+            } catch (Exception e) {
+                System.err.println("Error sending email: " + e.getMessage());
+                // Consider logging the error for further investigation
+            }
+        }else{
+            System.err.println("Error: Booking not found for booking ID: " + bookingId);
+        }
+    }
+
+    private String buildPaymentSuccessEmailBody(Booking booking, Payment payment) {
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Include time
+
+        StringBuilder body = new StringBuilder();
+        body.append("Dear ").append(booking.getCustomer().getLastName()).append(" ").append(booking.getCustomer().getFirstName()).append(",\n\n");
+        body.append("Thank you for your payment!\n\n");
+        body.append("Your payment details are as follows:\n");
+        body.append("Booking ID: ").append(booking.getBookingId()).append("\n");
+        body.append("Payment Date: ").append(LocalDateTime.now().format(dateFormatter)).append(" (").append(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).append(")\n");
+        body.append("Amount: ").append(String.format("%.2f VND", payment.getAmount())).append("\n");
+        body.append("Transaction ID: ").append(payment.getTransactionId()).append("\n"); //Added Payment Method
+        body.append("\n\n");
+        body.append("Please check your booking details in your profile history.\n");
+        body.append("If you have any questions, please contact us.\n\n");
+        body.append("Sincerely,\nThe Bliss Spa Team");
+        return body.toString();
+    }
 }

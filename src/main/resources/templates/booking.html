@@ -296,8 +296,7 @@
                 }
             }
         });
-
-        // Form submit
+        // Chỉnh sửa trong hàm submit
         $("#request").submit(function (event) {
             event.preventDefault(); // Ngăn submit mặc định
 
@@ -322,12 +321,10 @@
             fetch(`/api/booking/check-slot?date=${dateStr}&time=${selectedTime}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.alreadyBooked) {
-                        alert("Bạn đã có lịch hẹn trong khung giờ này.");
-                    } else if (!data.available) {
+                    if (!data.available) {
                         alert("Khung giờ này đã đầy. Vui lòng chọn khung giờ khác.");
                     } else {
-                        // Submit form nếu hợp lệ
+                        // Submit form nếu còn slot
                         document.getElementById("request").submit();
                     }
                 })
@@ -336,6 +333,7 @@
                     alert("Không thể kiểm tra khung giờ. Vui lòng thử lại.");
                 });
         });
+
 
         // Gọi fetchUserProfile khi load trang
         fetchUserProfile();
@@ -358,18 +356,17 @@
     }
 
     function displayUserProfile(userData) {
-        if (document.getElementById('name')) {
+        if(document.getElementById('name')){
             document.getElementById('name').value = userData.lastName + ' ' + userData.firstName;
         }
-        if (document.getElementById('email')) {
+        if (document.getElementById('email')){
             document.getElementById('email').value = userData.email;
         }
-        if (document.getElementById('phone')) {
+        if (document.getElementById('phone')){
             document.getElementById('phone').value = userData.phoneNumber;
         }
     }
 </script>
-
 
 </body>
 </html>

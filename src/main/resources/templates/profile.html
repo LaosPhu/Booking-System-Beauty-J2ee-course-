@@ -74,112 +74,225 @@
       }
 
       function displayBookingHistory(bookingData) {
-    const historyContainer = document.getElementById('booking-history-list');
-    if (!historyContainer) return;
+          const historyContainer = document.getElementById('booking-history-list');
+          if (!historyContainer) return;
 
-    historyContainer.innerHTML = '';
+          historyContainer.innerHTML = '';
 
-    if (bookingData && bookingData.length > 0) {
-        const table = document.createElement('table');
-        table.classList.add('booking-history-table');
+          if (bookingData && bookingData.length > 0) {
+              const table = document.createElement('table');
+              table.classList.add('booking-history-table');
 
-        const headerRow = table.insertRow();
-        const headerBookingId = headerRow.insertCell();
-        const headerDate = headerRow.insertCell();
-        const headerAmount = headerRow.insertCell();
-        const headerDetails = headerRow.insertCell();
-        const headerPaymentStatus = headerRow.insertCell();
-        const headerPaymentMethod = headerRow.insertCell();
-        const headerAction = headerRow.insertCell();
+              const headerRow = table.insertRow();
+              const headerBookingId = headerRow.insertCell();
+              const headerDate = headerRow.insertCell();
+              const headerAmount = headerRow.insertCell();
+              const headerDetails = headerRow.insertCell();
+              const headerPaymentStatus = headerRow.insertCell();
+              const headerPaymentMethod = headerRow.insertCell();
+              const headerAction = headerRow.insertCell();
+              const headerStatus = headerRow.insertCell(); // Changed header to Status
 
-        headerBookingId.textContent = 'Booking ID';
-        headerDate.textContent = 'Date';
-        headerAmount.textContent = 'Amount';
-        headerDetails.textContent = 'Details';
-        headerPaymentStatus.textContent = 'Payment Status';
-        headerPaymentMethod.textContent = 'Payment Method';
-        headerAction.textContent = 'Action';
+              headerBookingId.textContent = 'Booking ID';
+              headerDate.textContent = 'Date';
+              headerAmount.textContent = 'Amount';
+              headerDetails.textContent = 'Details';
+              headerPaymentStatus.textContent = 'Payment Status';
+              headerPaymentMethod.textContent = 'Payment Method';
+              headerAction.textContent = 'Action';
+              headerStatus.textContent = 'Status'; // Header for Status column
 
-        headerBookingId.style.fontWeight = 'bold';
-        headerDate.style.fontWeight = 'bold';
-        headerAmount.style.fontWeight = 'bold';
-        headerDetails.style.fontWeight = 'bold';
-        headerPaymentStatus.style.fontWeight = 'bold';
-        headerPaymentMethod.style.fontWeight = 'bold';
-        headerAction.style.fontWeight = 'bold';
+              headerBookingId.style.fontWeight = 'bold';
+              headerDate.style.fontWeight = 'bold';
+              headerAmount.style.fontWeight = 'bold';
+              headerDetails.style.fontWeight = 'bold';
+              headerPaymentStatus.style.fontWeight = 'bold';
+              headerPaymentMethod.style.fontWeight = 'bold';
+              headerAction.style.fontWeight = 'bold';
+              headerStatus.style.fontWeight = 'bold';
 
-        const paymentMap = new Map();
+              const paymentMap = new Map();
 
-        const paymentPromises = bookingData.map(booking => {
-            return fetch(`/api/payment/getByBooking/${booking.bookingId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        return null;
-                    }
-                    return response.json();
-                })
-                .then(payment => {
-                    if (payment) {
-                        paymentMap.set(booking.bookingId, payment);
-                    }
-                })
-                .catch(error => {
-                    console.error(`Error fetching payment for booking ${booking.bookingId}:`, error);
-                    return null;
-                });
-        });
+              const paymentPromises = bookingData.map(booking => {
+                  //  Check payment method here
+                  if (booking.paymentMethod.toLowerCase() === 'cash' || booking.bookingStatus.toLowerCase() === 'cancelled') {
+                      //  For cash, call the update-status API
 
-        Promise.all(paymentPromises).then(() => {
-            bookingData.forEach(booking => {
-                const row = table.insertRow();
-                const bookingIdCell = row.insertCell();
-                const dateCell = row.insertCell();
-                const amountCell = row.insertCell();
-                const detailsCell = row.insertCell();
-                const paymentStatusCell = row.insertCell();
-                const paymentMethodCell = row.insertCell();
-                const actionCell = row.insertCell();
+                  } else {
+                      //  For online payments, fetch as before
+                      return fetch(`/api/payment/getByBooking/${booking.bookingId}`)
+                          .then(response => {
+                              if (!response.ok) {
+                                  return null; //  Handle non-ok responses
+                              }
+                              return response.json();
+                          })
+                          .then(payment => {
+                              if (payment) {
+                                  paymentMap.set(booking.bookingId, payment.paymentStatus ); // changed to only store status
+                                  return { bookingId: booking.bookingId, paymentStatus: payment.paymentStatus };
+                              }
+                              return null;
+                          })
+                          .catch(error => {
+                              console.error(`Error fetching payment for booking ${booking.bookingId}:`, error);
+                              return null; //  Important:  Return null, not undefined.
+                          });
+                  }
+              });
 
-                bookingIdCell.textContent = booking.bookingId;
-                dateCell.textContent = booking.appointmentDateTime;
-                amountCell.textContent = booking.totalPrice;
+              Promise.all(paymentPromises).then((results) => {
+                  bookingData.forEach(booking => {
+                      const row = table.insertRow();
+                      const bookingIdCell = row.insertCell();
+                      const dateCell = row.insertCell();
+                      const amountCell = row.insertCell();
+                      const detailsCell = row.insertCell();
+                      const paymentStatusCell = row.insertCell();
+                      const paymentMethodCell = row.insertCell();
+                      const actionCell = row.insertCell();
+                      const statusCell = row.insertCell(); // New Status cell
 
-                const detailsLink = document.createElement('a');
-                detailsLink.textContent = 'Details';
-                detailsLink.href = '#';
-                detailsLink.classList.add('detail-link');
-                detailsLink.addEventListener('click', function () {
-                    showBookingDetails(booking.bookingId);
-                });
-                detailsCell.appendChild(detailsLink);
+                      bookingIdCell.textContent = booking.bookingId;
+                      dateCell.textContent = booking.appointmentDateTime;
+                      amountCell.textContent = booking.totalPrice + ' VND';
 
-                const payment = paymentMap.get(booking.bookingId);
-                const paymentStatus = payment ? payment.paymentStatus : 'Pending';
+                      const detailsLink = document.createElement('a');
+                      detailsLink.textContent = 'Details';
+                      detailsLink.href = '#';
+                      detailsLink.classList.add('detail-link');
+                      detailsLink.addEventListener('click', function () {
+                          showBookingDetails(booking.bookingId, booking.totalPrice); // Pass total price
+                      });
+                      detailsCell.appendChild(detailsLink);
 
-                paymentStatusCell.textContent = paymentStatus;
-                paymentMethodCell.textContent = booking.paymentMethod;
+                      const payment = paymentMap.get(booking.bookingId);
+                      //  Use the payment status from the map.  Default to 'Pending' if not found.
+                      const paymentStatus = payment ? payment : 'Pending';
 
-                if (booking.paymentMethod === 'Online' && paymentStatus === 'Pending' || paymentStatus=== 'FAILED') {
-                    const payNowButton = document.createElement('button');
-                    payNowButton.textContent = 'Pay Now';
-                    // Pass bookingId and totalPrice from the current row's data
-                    payNowButton.addEventListener('click', function () {
-                        const rowBookingId = booking.bookingId;
-                        const rowTotalPrice = booking.totalPrice;
-                        processVNPayPayment(rowTotalPrice, rowBookingId);
-                    });
-                    actionCell.appendChild(payNowButton);
-                } else if (booking.paymentMethod === 'Cash' && paymentStatus === 'Pending') {
-                    actionCell.textContent = 'Payment at Spa';
-                } else {
-                    actionCell.textContent = '';
-                }
-            });
-            historyContainer.appendChild(table);
-        });
-    } else {
-        historyContainer.innerHTML = '<p>No booking history found.</p>';
+                      paymentStatusCell.textContent = paymentStatus;
+                      paymentMethodCell.textContent = booking.paymentMethod;
+
+                      actionCell.textContent = ''; // Initialize action cell
+
+                      if (booking.paymentMethod === 'Online' && (paymentStatus === 'Pending' || paymentStatus === 'FAILED')) {
+                          const payNowButton = document.createElement('button');
+                          payNowButton.textContent = 'Pay Now';
+                          payNowButton.addEventListener('click', function () {
+                              const rowBookingId = booking.bookingId;
+                              const rowTotalPrice = booking.totalPrice;
+                              processVNPayPayment(rowTotalPrice, rowBookingId);
+                          });
+                          actionCell.appendChild(payNowButton);
+                      } else if (booking.paymentMethod === 'Cash') {
+                        if (paymentStatus === 'Pending') {
+                            actionCell.textContent = 'Payment at Spa';
+                        }
+                        else if (paymentStatus === 'Completed' || paymentStatus === 'SUCCESS'){
+                            actionCell.textContent = 'Completed';
+                        }
+                        else if (paymentStatus === 'Cancelled'){
+                            actionCell.textContent = 'Cancelled';
+                        }
+                        else if (paymentStatus === 'Error'){
+                            actionCell.textContent = 'Error';
+                        }
+                      }
+
+                      // Add cancel button with condition and update status.  This part is fine.
+                      const appointmentTime = new Date(booking.appointmentDateTime);
+                      const now = new Date();
+                      const timeDifference = appointmentTime.getTime() - now.getTime();
+                      const daysDifference = timeDifference / (1000 * 3600 * 24);
+
+                      if (booking.bookingStatus === 'Cancelled') {
+                          statusCell.textContent = 'Cancelled';
+                      } else if (appointmentTime < now) {
+                          statusCell.textContent = 'Completed';
+                      } else if (daysDifference > 1) {
+                          const cancelButton = document.createElement('button');
+                          cancelButton.textContent = 'Cancel';
+                          cancelButton.addEventListener('click', function () {
+                              confirmCancelSession(booking.bookingId, row, paymentStatusCell, actionCell, statusCell);
+                          });
+                          statusCell.appendChild(cancelButton);
+                      } else {
+                          const cannotCancelText = document.createElement('span');
+                          cannotCancelText.textContent = 'Too Late';
+                          statusCell.appendChild(cannotCancelText);
+                      }
+                  });
+                  historyContainer.appendChild(table);
+              });
+          } else {
+              historyContainer.innerHTML = '<p>No booking history found.</p>';
+          }
+      }
+
+      function confirmCancelSession(bookingId, rowElement, paymentStatusCell, actionCell, statusCell) {
+          if (confirm('Are you sure you want to cancel this session?')) {
+              fetch(`/api/booking/cancel/${bookingId}`, {
+                      method: 'PUT',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      }
+                  })
+                  .then(response => {
+                      if (!response.ok) {
+                          return response.json().then(err => {
+                              throw new Error(err.message || 'Failed to cancel session');
+                          });
+                      }
+                      return response.json();
+                  })
+                  .then(data => {
+                      alert('Session cancelled successfully.');
+                      paymentStatusCell.textContent = 'Cancelled';
+                      actionCell.textContent = 'Cancelled';
+                      statusCell.textContent = 'Cancelled'; // Update the status column
+                  })
+                  .catch(error => {
+                      console.error('Error cancelling session:', error);
+                      alert('Failed to cancel session: ' + error.message);
+                  });
+          }
+      }
+
+
+function processVNPayPayment(totalPrice, bookingId, bankCode) {
+    // Create payment with selected bank code
+    const params = new URLSearchParams();
+    params.append('totalPrice', totalPrice);
+    params.append('bookingId', bookingId);
+    if (bankCode) {
+        params.append('bankCode', bankCode);
     }
+
+    fetch(`/api/payment/create-payment?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Failed to initiate payment');
+            });
+        }
+        return response.json();
+    })
+    .then(responseData => {
+        if (responseData.status === "OK") {
+            window.open(responseData.URL, '_blank');
+        } else {
+            alert('Failed to initiate payment: ' + (responseData.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Payment Error:', error);
+        alert('An error occurred while processing the payment: ' + error.message);
+    });
 }
 
 function processVNPayPayment(totalPrice, bookingId) {
@@ -254,18 +367,18 @@ function createVNPayPayment(totalPrice, bookingId, bankCode) {
         alert('An error occurred while processing the payment: ' + error.message);
     });
 }
-      function showBookingDetails(bookingId) {
+
+      function showBookingDetails(bookingId, totalPrice) {
           fetch(`/api/booking/details/${bookingId}`)
               .then(response => {
-                  if (!response.ok) {
-                      throw new Error(`HTTP error! Status: ${response.status}`);
-                  }
-                  return response.json();
-              })
-              .then(bookingDetails => {
-                  const totalPrice = bookingDetails.reduce((sum, detail) => sum + detail.service.price, 0);
+                      if (!response.ok) {
+                          throw new Error(`HTTP error! Status: ${response.status}`);
+                      }
+                      return response.json();
+                  })
+                  .then(bookingDetails => {
 
-                  let popupContent = `
+                      let popupContent = `
               <div style="background-color: white; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; max-width: 600px; width: 95%;">
                   <h2 style="margin-bottom: 15px;">Booking Details (Booking ID: ${bookingId})</h2>
                   <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
@@ -279,39 +392,39 @@ function createVNPayPayment(totalPrice, bookingId, bankCode) {
                       <tbody>
           `;
 
-                  bookingDetails.forEach(detail => {
-                      popupContent += `
+                      bookingDetails.forEach(detail => {
+                          popupContent += `
                   <tr>
-                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.service.name}</td>
-                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.service.duration}</td>
-                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">$${detail.service.price.toFixed(2)}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.name}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.duration}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${detail.price.toFixed(2)} VND</td>
                   </tr>
               `;
-                  });
+                      });
 
-                  popupContent += `
+                      popupContent += `
                       </tbody>
                   </table>
-                  <p style="font-size: 1.2em; font-weight: bold; text-align: right;">Total Price: $${totalPrice.toFixed(2)}</p>
+                  <p style="font-size: 1.2em; font-weight: bold; text-align: right;">Total Price: ${totalPrice.toFixed(2)} VND</p>
                   <button onclick="closePopup()" style="margin-top: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; display: block; margin-left: auto;">Close</button>
               </div>
           `;
 
-                  const popupDiv = document.createElement('div');
-                  popupDiv.id = 'bookingDetailsPopup';
-                  popupDiv.innerHTML = popupContent;
+                      const popupDiv = document.createElement('div');
+                      popupDiv.id = 'bookingDetailsPopup';
+                      popupDiv.innerHTML = popupContent;
 
-                  document.body.appendChild(popupDiv);
+                      document.body.appendChild(popupDiv);
 
-                  window.closePopup = function () {
-                      document.body.removeChild(popupDiv);
-                  };
+                      window.closePopup = function () {
+                          document.body.removeChild(popupDiv);
+                      };
 
-              })
-              .catch(error => {
-                  console.error('Error fetching booking details:', error);
-                  alert('Failed to fetch booking details. Please check your network connection and try again.');
-              });
+                  })
+                  .catch(error => {
+                      console.error('Error fetching booking details:', error);
+                      alert('Failed to fetch booking details. Please check your network connection and try again.');
+                  });
       }
 
 
@@ -334,8 +447,8 @@ function createVNPayPayment(totalPrice, bookingId, bankCode) {
               event.preventDefault();
 
               fetch('/api/user/logout', {
-                  method: 'GET'
-              })
+                      method: 'GET'
+                  })
                   .then(response => {
                       if (response.ok) {
                           document.cookie = 'JSESSIONID=; Max-Age=0; path=/;';
@@ -354,5 +467,6 @@ function createVNPayPayment(totalPrice, bookingId, bankCode) {
 
   window.onload = logout;
 </script>
+
 </body>
 </html>
