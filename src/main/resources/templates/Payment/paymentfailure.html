@@ -1,31 +1,52 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Profile</title>
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/responsive.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Failed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+  </style>
 </head>
-<body >
-<div id="header-container">
-  <div th:if="${isLoggedIn}" th:replace="~{fragments/header-logged-in :: header}"></div>
-</div>
-<h1 class="text-2xl font-semibold text-center text-red-600 mb-6">Payment Failed!</h1>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+<div class="bg-white rounded-lg shadow-md p-8 max-w-md w-full">
+  <h1 class="text-2xl font-semibold text-center text-red-600 mb-6">Payment Failed!</h1>
   <div class="text-center">
     <p class="text-gray-700 text-lg mb-4">Your payment was not successful.</p>
+    <p class="text-blue-600 font-semibold mb-4">Booking ID: <span id="bookingId"></span></p>
+    <p class="text-red-600 mb-4">Error Message: <span id="errorMessage" class="font-medium"></span></p>
     <p class="text-gray-700">Please try again or contact customer support.</p>
   </div>
   <div class="mt-6 text-center">
-    <a href="/profile/history" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-      Back to profile
+    <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+      Back to Home
     </a>
   </div>
+</div>
 <script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = urlParams.get('bookingId');
+  const message = urlParams.get('message');
 
+  if (bookingId) {
+      document.getElementById('bookingId').textContent = bookingId;
+  } else {
+       document.body.innerHTML = `<div class="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
+          <h1 class="text-2xl font-semibold text-red-600 mb-6">Error</h1>
+          <p class="text-gray-700 text-lg mb-4">Invalid access to this page.</p>
+           <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded mt-4 inline-block">
+              Back to Home
+          </a>
+       </div>`;
+  }
+
+  if (message) {
+      document.getElementById('errorMessage').textContent = message;
+  }
 </script>
 </body>
 </html>

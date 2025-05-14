@@ -1,5 +1,4 @@
 package com.J2EEWEB.beautyweb.entity;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.springframework.cglib.core.Local;
 
@@ -10,7 +9,6 @@ import java.time.LocalTime;
 
 
 @Entity
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Booking {
 
     @Id

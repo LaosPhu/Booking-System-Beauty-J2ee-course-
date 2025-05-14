@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login and Signup</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -116,18 +115,11 @@
             margin-bottom: 10px;
             font-size: 14px;
         }
-        .g_id_signin {
-    margin: 10px auto;
-    width: 100% !important;
-}
-
-.g_id_signin > div {
-    margin: 0 auto;
-}
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- Đăng nhập giữ nguyên -->
     <div id="login-form">
         <h2>Login</h2>
         <div id="error-message"></div>
@@ -141,13 +133,13 @@
                 <input type="password" id="login-password" name="password" placeholder="Enter your password">
             </div>
             <button type="submit" class="btn login-btn">Login</button>
-            <div id="googleSignInBtn" class="form-group"></div>
         </form>
         <div class="form-link">
             <a href="#" id="show-signup">Don't have an account? Sign up</a>
         </div>
     </div>
 
+    <!-- FORM ĐĂNG KÝ CHỈNH SỬA -->
     <div id="signup-form" style="display: none;">
         <h2>Sign Up</h2>
         <div id="signup-message"></div>
@@ -187,6 +179,8 @@
         </div>
     </div>
 </div>
+
+<!-- SCRIPT ĐÃ CHỈNH SỬA -->
 <script>
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -194,7 +188,6 @@
     const showLoginLink = document.getElementById('show-login');
     const errorMessage = document.getElementById('error-message');
     const signupMessage = document.getElementById('signup-message');
-    const googleSignInBtn = document.getElementById('googleSignInBtn'); // Get the container
 
     showSignupLink.addEventListener('click', (e) => {
         e.preventDefault();
@@ -221,26 +214,25 @@
             errorMessage.textContent = 'Please fill in all fields.';
             return;
         }
-        // Use the provided API endpoint for authentication
-        fetch(`/api/user/login?username=${username}&password=${password}`, {  // Changed to the correct API endpoint
-            method: 'POST', // Use POST for login
+
+        fetch(`/api/user/login?username=${username}&password=${password}`, {
+            method: 'POST',
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Authentication failed');
-            }
+            if (!response.ok) throw new Error('Authentication failed');
             return response.json();
         })
         .then(data => {
-            // Store user information in sessionStorage
             sessionStorage.setItem('isLoggedIn', 'true');
             sessionStorage.setItem('userRole', data.role);
             sessionStorage.setItem('username', data.username);
+
             window.location.href = data.role === 'admin' ? '/admin' : '/';
         })
         .catch(error => {
             errorMessage.textContent = 'Error: ' + error.message;
         });
+
         e.target.reset();
     });
 
@@ -283,7 +275,8 @@
             username,
             password
         };
-fetch('/api/user/signup', {
+
+        fetch('/api/user/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(userData)
@@ -302,45 +295,6 @@ fetch('/api/user/signup', {
             signupMessage.textContent = 'Error sending request.';
         });
     });
-    // Google Sign-In Initialization
-    function handleCredentialResponse(response) {
-        fetch('/api/auth/google/signin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ credential: response.credential })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Authentication failed');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Force page reload to trigger Thymeleaf rendering
-            window.location.href = data.role === 'admin' ? '/admin' : '/';
-        })
-        .catch(error => {
-            errorMessage.textContent = 'Google login error: ' + error.message;
-        });
-    }
-
-
-    // Render the Google Sign-In button after the script loads
-    window.onload = function () {
-        google.accounts.id.initialize({
-            client_id: '569248852142-devhjs8ou3ec8l7mun237thjne8pqcj6.apps.googleusercontent.com', // Replace with your actual Google Client ID
-            callback: handleCredentialResponse
-        });
-        google.accounts.id.renderButton(
-            googleSignInBtn,
-            { theme: "outline", size: "large" }  // customization attributes
-        );
-        // Also render the One Tap prompt
-        google.accounts.id.prompt();
-    };
-
 </script>
 </body>
 </html>

@@ -191,11 +191,6 @@ public class UserController {
     }
 
 
-    public User GetUserfromUsername(HttpSession session){
-        String username = (String) session.getAttribute("username");
-        Optional<User> user = userRepository.findByUsername(username);
-        return user.get();
-    }
 }
 
 

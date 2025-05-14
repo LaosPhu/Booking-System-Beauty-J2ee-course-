@@ -38,32 +38,18 @@ public class User {
     private String password;
     private LocalDateTime registrationDate;
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
 
     @Column(nullable = false)
     private String role; // "user" or "admin"
 
     @Column(nullable = true)
     private boolean status;
-
-    @Enumerated(EnumType.STRING)
-    private AuthProvider authProvider;
-
-    private String providerId; // Google's unique user ID (sub)
-
-    public enum AuthProvider {
-        LOCAL, GOOGLE
-    }
-
-    // Constructors
+    // Constructors, Getters, Setters
     public User() {
     }
 
-    // Constructor for local registration
-    public User(String firstName, String lastName, String email, String username,
-                String password, String phoneNumber, String address,
-                LocalDateTime registrationDate, String notes, String role, boolean status) {
+    // Constructor for a general user
+    public User(String firstName, String lastName, String email, String username, String password, String phoneNumber, String address, LocalDateTime registrationDate, String notes, String role,boolean status) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -72,31 +58,10 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.registrationDate = registrationDate;
-        this.notes = notes;
         this.role = role;
-        this.status = status;
-        this.authProvider = AuthProvider.LOCAL;
+        this.status=true;
     }
 
-    // Constructor for Google registration
-    public User(String fullName, String email, String providerId) {
-        this.setNameFromFullName(fullName);
-        this.email = email;
-        this.providerId = providerId;
-        this.authProvider = AuthProvider.GOOGLE;
-        this.registrationDate = LocalDateTime.now();
-        this.role = "user";
-        this.status = true;
-    }
-
-    // Helper method to split full name into first and last names
-    public void setNameFromFullName(String fullName) {
-        if (fullName != null) {
-            String[] names = fullName.split(" ");
-            this.firstName = names[0];
-            this.lastName = names.length > 1 ? names[names.length - 1] : "";
-        }
-    }
 
 
     public Long getUserId() {
@@ -171,14 +136,6 @@ public class User {
         this.registrationDate = registrationDate;
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
     public String getRole() {
         return role;
     }
@@ -193,14 +150,6 @@ public class User {
 
     public void setStatus(boolean status) {
         this.status = status;
-    }
-
-    public AuthProvider getAuthProvider() {
-        return authProvider;
-    }
-
-    public void setAuthProvider(AuthProvider authProvider) {
-        this.authProvider = authProvider;
     }
 }
 
