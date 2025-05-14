@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div id="header-container">
+    <div th:if="${isLoggedIn}" th:replace="~{fragments/header-logged-in :: header}"></div>
+</div>
+<h1 class="text-2xl font-semibold text-center text-green-600 mb-6">Payment Successful!</h1>
+<div class="text-center">
+    <p class="text-gray-700 text-lg mb-4">Your payment was processed successfully.</p>
+    <p class="text-gray-700">Thank you for choosing our service!</p>
+</div>
+<div class="mt-6 text-center">
+    <a href="/profile/history" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+        Back to profile
+    </a>
+</div>
+</div>
+
+
+</body>
+</html>

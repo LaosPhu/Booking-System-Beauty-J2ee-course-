@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Signup</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 400px;
+            max-width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus {
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .login-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+
+        .signup-btn {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .signup-btn:hover {
+            background-color: #0056b3;
+        }
+
+
+        .form-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-link a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-link a:hover {
+            color: #0056b3;
+        }
+
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .g_id_signin {
+    margin: 10px auto;
+    width: 100% !important;
+}
+
+.g_id_signin > div {
+    margin: 0 auto;
+}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="login-form">
+        <h2>Login</h2>
+        <div id="error-message"></div>
+        <form>
+            <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" name="username" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" name="password" placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn login-btn">Login</button>
+            <div id="googleSignInBtn" class="form-group"></div>
+        </form>
+        <div class="form-link">
+            <a href="#" id="show-signup">Don't have an account? Sign up</a>
+        </div>
+    </div>
+
+    <div id="signup-form" style="display: none;">
+        <h2>Sign Up</h2>
+        <div id="signup-message"></div>
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-email">Email</label>
+                <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number (10 digits)</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" placeholder="Enter your address" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-username">Username</label>
+                <input type="text" id="signup-username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password (min 8 chars)</label>
+                <input type="password" id="signup-password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn signup-btn">Sign Up</button>
+        </form>
+        <div class="form-link">
+            <a href="#" id="show-login">Already have an account? Login</a>
+        </div>
+    </div>
+</div>
+<script>
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const showSignupLink = document.getElementById('show-signup');
+    const showLoginLink = document.getElementById('show-login');
+    const errorMessage = document.getElementById('error-message');
+    const signupMessage = document.getElementById('signup-message');
+    const googleSignInBtn = document.getElementById('googleSignInBtn'); // Get the container
+
+    showSignupLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        errorMessage.textContent = '';
+        signupMessage.textContent = '';
+    });
+
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        signupForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        errorMessage.textContent = '';
+        signupMessage.textContent = '';
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = e.target.elements.username.value.trim();
+        const password = e.target.elements.password.value.trim();
+
+        if (!username || !password) {
+            errorMessage.textContent = 'Please fill in all fields.';
+            return;
+        }
+        // Use the provided API endpoint for authentication
+        fetch(`/api/user/login?username=${username}&password=${password}`, {  // Changed to the correct API endpoint
+            method: 'POST', // Use POST for login
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Authentication failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Store user information in sessionStorage
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('userRole', data.role);
+            sessionStorage.setItem('username', data.username);
+            window.location.href = data.role === 'admin' ? '/admin' : '/';
+        })
+        .catch(error => {
+            errorMessage.textContent = 'Error: ' + error.message;
+        });
+        e.target.reset();
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const username = document.getElementById('signup-username').value.trim();
+        const password = document.getElementById('signup-password').value.trim();
+
+        signupMessage.style.color = 'red';
+
+        // Validate
+        if (!firstName || !lastName || !email || !phoneNumber || !address || !username || !password) {
+            signupMessage.textContent = 'Please fill in all fields.';
+            return;
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            signupMessage.textContent = 'Phone number must be 10 digits.';
+            return;
+        }
+
+        if (password.length < 8) {
+            signupMessage.textContent = 'Password must be at least 8 characters.';
+            return;
+        }
+
+        // Build data
+        const userData = {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            address,
+            username,
+            password
+        };
+fetch('/api/user/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(userData)
+        })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(({ status, body }) => {
+            if (status >= 200 && status < 300) {
+            signupMessage.style.color = 'green';
+            signupMessage.textContent = body.message || 'Signup successful!';
+            document.getElementById('signupForm').reset();
+        } else {
+            signupMessage.textContent = body.error || 'Signup failed.';
+        }
+        })
+        .catch(() => {
+            signupMessage.textContent = 'Error sending request.';
+        });
+    });
+    // Google Sign-In Initialization
+    function handleCredentialResponse(response) {
+        fetch('/api/auth/google/signin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ credential: response.credential })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Authentication failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Force page reload to trigger Thymeleaf rendering
+            window.location.href = data.role === 'admin' ? '/admin' : '/';
+        })
+        .catch(error => {
+            errorMessage.textContent = 'Google login error: ' + error.message;
+        });
+    }
+
+
+    // Render the Google Sign-In button after the script loads
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: '569248852142-devhjs8ou3ec8l7mun237thjne8pqcj6.apps.googleusercontent.com', // Replace with your actual Google Client ID
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            googleSignInBtn,
+            { theme: "outline", size: "large" }  // customization attributes
+        );
+        // Also render the One Tap prompt
+        google.accounts.id.prompt();
+    };
+
+</script>
+</body>
+</html>

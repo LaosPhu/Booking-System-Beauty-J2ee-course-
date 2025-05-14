@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spa Booking</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="icon" href="images/fevicon.png" type="image/gif" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="css/bootstrap-datepicker.min.css">
+</head>
+<body class="main-layout">
+<div class="loader_bg">
+    <div class="loader"><img src="images/loading.gif" alt="#"/></div>
+</div>
+
+<div class="booking">
+    <div class="container">
+        <h2>Booking Confirmation</h2>
+
+        <p><strong>Date:</strong> <span th:text="${date}"></span></p>
+        <p><strong>Time:</strong> <span th:text="${time}"></span></p>
+        <p><strong>Name:</strong> <span th:text="${name}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${email}"></span></p>
+        <p><strong>Phone:</strong> <span th:text="${phone}"></span></p>
+        <p><strong>Special Request:</strong> <span th:text="${message}"></span></p>
+
+        <h3>Selected Services</h3>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Service Name</th>
+                <th>Description</th>
+                <th>Duration</th>
+                <th>Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="service : ${selectedServices}">
+                <td th:text="${service.name}"></td>
+                <td th:text="${service.description}"></td>
+                <td th:text="${service.duration} + ' mins'"></td>
+                <td th:text="${#numbers.formatDecimal(service.price, 1, 'POINT', 2, 'NONE')} + ' VND'"></td>
+            </tr>
+            </tbody>
+        </table>
+        <h4>Total Price: <span th:text="${#numbers.formatDecimal(totalPrice, 1, 'POINT', 2, 'NONE')} + ' VND'"></span></h4>
+
+        <div class="form-group">
+            <label for="paymentMethod">Payment Method:</label>
+            <select id="paymentMethod" class="form-control">
+                <option value="cash">Cash</option>
+                <option value="online">Online Payment</option>
+            </select>
+        </div>
+
+        <button id="paymentButton" class="btn btn-primary">Book Now</button>
+
+        <div id="payment-message" style="margin-top: 20px; font-weight: bold; color: green;">Payment will be processed at the spa.</div>
+    </div>
+</div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/jquery-3.0.0.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/bootstrap-datepicker.min.js"></script>
+<script src="js/custom.js" defer></script>
+<script>
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const paymentButton = document.getElementById('paymentButton');
+        const paymentMessage = document.getElementById('payment-message');
+
+        // Get total price from the displayed value (since we can't access it directly)
+        const totalPrice = parseFloat(document.querySelector('h4 span').textContent.replace(/[^\d.]/g, ''));
+
+        paymentMethodSelect.addEventListener('change', function() {
+            if (this.value === 'online') {
+                paymentButton.textContent = 'Pay Now';
+                paymentMessage.textContent = '';
+            } else {
+                paymentButton.textContent = 'Book Now';
+                paymentMessage.textContent = 'Payment will be processed at the spa.';
+            }
+        });
+
+        paymentButton.addEventListener('click', function() {
+            const paymentMethod = paymentMethodSelect.value;
+            const endpoint = paymentMethod === 'online'
+                ? '/api/booking/confirmOnline'
+                : '/api/booking/confirmCash';
+
+            // Disable button during processing
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Processing...';
+            paymentMessage.textContent = '';
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add CSRF token if needed
+                    // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                },
+                // No need to send data in body since backend uses session
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.json();
+            })
+            .then(bookingId => {
+                paymentMessage.textContent = `Booking confirmed! Your Booking ID is: ${bookingId}`;
+                alert(`Booking confirmed! Redirecting to your profile....`);
+                window.location.href = `/profile/history`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                paymentMessage.textContent = 'Failed to confirm booking. Please try again.';
+                alert('Failed to confirm booking: ' + error.message);
+            })
+            .finally(() => {
+                paymentButton.disabled = false;
+                paymentButton.textContent = paymentMethod === 'online' ? 'Pay Now' : 'Book Now';
+            });
+        });
+    });
+</script>
+</body>
+</html>

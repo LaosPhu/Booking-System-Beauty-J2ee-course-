@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Application Title</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+<header th:replace="fragments/headerLoggedIn :: headerLoggedIn"></header>
+<main>
+  <div th:replace="${content}"></div> </main>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const logoutButton = document.getElementById('logoutButton');
+      if (logoutButton) {
+          logoutButton.addEventListener('click', function(event) {
+              event.preventDefault();
+              fetch('/api/user/logout', {
+                  method: 'GET'
+              })
+              .then(response => {
+                  if (response.ok) {
+                      document.cookie = 'JSESSIONID=; Max-Age=0; path=/;';
+                      sessionStorage.clear();
+                      window.location.href = '/';
+                  } else {
+                      console.error('Logout failed');
+                  }
+              })
+              .catch(error => {
+                  console.error('Error during logout:', error);
+              });
+          });
+      }
+  });
+</script>
+</body>
+</html>
+```

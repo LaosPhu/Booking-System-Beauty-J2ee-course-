@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Result</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+  <h1>Payment Result</h1>
+  <div th:if="${paymentMessage}">
+    <p th:text="${paymentMessage}" class="alert alert-info"></p>
+  </div>
+  <div>
+    <p>Transaction ID: <span th:text="${transactionId}"></span></p>
+    <p>Order Information: <span th:text="${orderInfo}"></span></p>
+    <p>Response Code: <span th:text="${responseCode}"></span></p>
+  </div>
+  <a href="/index">Back to Home</a>
+</div>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
