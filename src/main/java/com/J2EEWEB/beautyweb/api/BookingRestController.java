@@ -594,4 +594,28 @@ public class BookingRestController {
                 booking.getMessage()
         );
     }
+    @GetMapping("/check-slot")
+    public ResponseEntity<Map<String, Object>> checkBookingSlot(@RequestParam String date,
+                                                                @RequestParam String time) {
+        try {
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+            LocalDate bookingDate = LocalDate.parse(date, dateFormatter);
+            LocalTime bookingTime = LocalTime.parse(time, timeFormatter);
+            LocalDateTime appointmentDateTime = LocalDateTime.of(bookingDate, bookingTime);
+
+            long count = bookingRepository.countByAppointmentDateTime(appointmentDateTime);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("count", count);
+            response.put("available", count < 3); // true nếu chưa đủ 3 người
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid date or time format"));
+        }
+    }
+
 }

@@ -29,16 +29,16 @@ public class Service {
 
     private String category;
 
-    @Column(nullable = true)
-    private boolean status = true;
+    private boolean status;
 
     @Column(nullable = true)
     private String imageURL;
     // Constructors, Getters, Setters
     public Service() {
+        this.status = true;
     }
 
-    public Service(String name, String description, int duration, BigDecimal price, String category,String ImageURL,boolean status) {
+    public Service(String name, String description, int duration, BigDecimal price, String category,String imageURL) {
         this.name = name;
         this.description = description;
         this.duration = duration;
@@ -48,7 +48,7 @@ public class Service {
         this.status = true;
     }
 
-    public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL,boolean status) {
+    public Service(Long serviceId, String name, String description, int duration, BigDecimal price, String category, String imageURL) {
         this.serviceId = serviceId;
         this.name = name;
         this.description = description;
@@ -56,7 +56,7 @@ public class Service {
         this.price = price;
         this.category = category;
         this.imageURL = imageURL;
-        this.status=status;
+        this.status = true;
     }
 
     public Long getServiceId() {

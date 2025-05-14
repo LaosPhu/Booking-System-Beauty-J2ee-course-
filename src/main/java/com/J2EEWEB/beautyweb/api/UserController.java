@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,18 +138,57 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session expired. Please log in again.");
     }
-//    @GetMapping("/current")
-//    public ResponseEntity<?> getCurrentUser(HttpSession session) {
-//        String username = (String) session.getAttribute("username");
-//        Optional<User> user = userRepository.findByUsername(username);
-//        if (user.get() == null) {
-//            return ResponseEntity.status(401).build();
-//        }
-//        return ResponseEntity.ok(Map.of(
-//                "username", user.getUsername(),
-//                "role", user.getRole()
-//        ));
-//    }
+    @PostMapping("/signup")
+    public ResponseEntity<Map<String, Object>> signup(@RequestBody User user) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Kiểm tra bắt buộc các trường
+        if (user.getFirstName() == null || user.getLastName() == null ||
+                user.getEmail() == null || user.getPhoneNumber() == null ||
+                user.getUsername() == null || user.getPassword() == null ||
+                user.getAddress() == null) {
+            response.put("error", "Missing required fields");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Kiểm tra độ dài password
+        if (user.getPassword().length() < 8) {
+            response.put("error", "Password must be at least 8 characters long");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Kiểm tra định dạng số điện thoại (11 số)
+        if (!user.getPhoneNumber().matches("\\d{10}")) {
+            response.put("error", "Phone number must be exactly 10 digits");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Kiểm tra trùng lặp username, email, phone
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            response.put("error", "Username already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            response.put("error", "Email already in use");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        if (userRepository.findByPhoneNumber(user.getPhoneNumber()).isPresent()) {
+            response.put("error", "Phone number already in use");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        // Thiết lập các trường mặc định
+        user.setRegistrationDate(LocalDateTime.now());
+        user.setRole("customer");
+        user.setStatus(true);
+
+        userRepository.save(user);
+        response.put("message", "User registered successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
 
     public User GetUserfromUsername(HttpSession session){
         String username = (String) session.getAttribute("username");

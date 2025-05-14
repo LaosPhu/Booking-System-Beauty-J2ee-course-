@@ -48,6 +48,8 @@ public class BookingController {
                                  Model model,
                                  HttpSession httpSession) {
 
+        
+
         List<Service> selectedServices = serviceRepository.findAllById(serviceId);
         BigDecimal totalPrice = selectedServices.stream()
                 .map(Service::getPrice)

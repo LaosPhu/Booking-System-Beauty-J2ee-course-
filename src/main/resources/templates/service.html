@@ -69,12 +69,12 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-4">
-        <div class="row" id="serviceContainer">
-        </div>
+        <div class="container">
+            <div class="row" id="serviceContainer">
+                <!-- Các col-md-4 sẽ được append vào đây -->
             </div>
         </div>
+
     </div>
 </div>
 <footer>
@@ -160,33 +160,103 @@
 <script src="js/owl.carousel.min.js"></script>
 <script src="js/bootstrap-datepicker.min.js"></script>
 <script src="js/custom.js"></script>
+<style>
+    #serviceContainer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .service-item {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%; /* Chắc chắn rằng phần tử chiếm toàn bộ chiều rộng của cột */
+    }
+
+    .service-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .service-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .service-name h3 {
+        font-size: 1.3em;
+        margin-top: 10px;
+        color: #333;
+    }
+
+    .service-description p,
+    .service-price p,
+    .service-duration p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    .service-favorite {
+        border: none;
+        background: none;
+        font-size: 1.5em;
+        cursor: pointer;
+        color: #ff4d4d;
+    }
+
+    .service-favorite:hover {
+        transform: scale(1.2);
+    }
+
+</style>
 <script>
     fetch('/api/service/getAll')
-     .then(response => response.json())
-     .then(services => {
-         const serviceContainer = document.getElementById('serviceContainer');
-         serviceContainer.innerHTML = ''; // Clear initial content
-         services.forEach(service => {
-            const serviceItemHTML = document.createElement('div');
-            serviceItemHTML.className = 'col-md-4';
-            serviceItemHTML.innerHTML = `
-                <div class="ho-shad services_box text_align_left">
+        .then(response => response.json())
+        .then(services => {
+            const serviceContainer = document.getElementById('serviceContainer');
+            serviceContainer.innerHTML = ''; // Clear initial content
+            services.forEach(service => {
+                const serviceCol = document.createElement('div');
+                serviceCol.className = 'col-md-3 d-flex align-items-stretch mb-3'; // 4 items/row, nhỏ khoảng cách
 
-                        <div class="service-name" data-name="${service.name}"><h3>${service.name}</h3></div>
+                const serviceItemHTML = document.createElement('div');
+                serviceItemHTML.className = 'card h-100 service-item'; // đảm bảo chiều cao đều
+
+                serviceItemHTML.innerHTML = `
+                    <div class="ho-shad services_box text_align_left p-3">
+                        <div class="service-name" data-name="${service.name}">
+                            <h3>${service.name}</h3>
+                        </div>
                         <figure>
-                        <img data-image="${service.imageUrls}" alt="${service.name}">
+                            <img src="${service.imageURL}" alt="${service.name}" class="img-fluid">
                         </figure>
-                        <div class="service-description" data-description="${service.description}"><p>${service.description}</p>></div>
-                        <div class="service-price" data-price="${service.retailPrice}"><p>Price: $${service.retailPrice}</p>></div>
-                        <div class="service-duration" data-duration="${service.duration}"><p>Duration: ${service.duration}</p>></div>
-                    <button class="service-favorite" data-id="${service.id}">♡</button>
-                </div>
-            `;
-            serviceContainer.appendChild(serviceItemHTML);
+                        <div class="service-description" data-description="${service.description}">
+                            <p>${service.description}</p>
+                        </div>
+                        <div class="service-price" data-price="${service.price}">
+                            <p>Giá: ${service.price} VND</p>
+                        </div>
+                        <div class="service-duration" data-duration="${service.duration}">
+                            <p>Thời lượng: ${service.duration} Phút</p>
+                        </div>
+                        <button class="service-favorite btn btn-outline-danger mt-auto" data-id="${service.id}">♡</button>
+                    </div>
+                `;
 
-         });
-     })
-     .catch(error => console.error('Error fetching services:', error));
+                serviceCol.appendChild(serviceItemHTML);
+                serviceContainer.appendChild(serviceCol);
+            });
+        })
+        .catch(error => console.error('Error fetching services:', error));
+
+
 </script>
+
+
 </body>
 </html>

@@ -1,10 +1,15 @@
 package com.J2EEWEB.beautyweb.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Table(name = "[user]")
+@Table(name = "[user]") // Added square brackets around "user"
 public class User {
 
     @Id
@@ -18,11 +23,18 @@ public class User {
     private String lastName;
 
     @Column(nullable = false, unique = true)
+    @Email
+    @NotBlank
     private String email;
 
+    @Pattern(regexp = "\\d{10}", message = "Phone number must be exactly 10 digits")
     private String phoneNumber;
+
+    @NotBlank
     private String address;
+    @NotBlank
     private String username;
+    @NotBlank
     private String password;
     private LocalDateTime registrationDate;
 
@@ -86,7 +98,7 @@ public class User {
         }
     }
 
-    // Getters and Setters (unchanged from your original)
+
     public Long getUserId() {
         return userId;
     }
@@ -191,11 +203,3 @@ public class User {
         this.authProvider = authProvider;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-}
