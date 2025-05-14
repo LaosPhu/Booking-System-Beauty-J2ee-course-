@@ -283,7 +283,25 @@
             username,
             password
         };
-
+fetch('/api/user/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(userData)
+        })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(({ status, body }) => {
+            if (status >= 200 && status < 300) {
+            signupMessage.style.color = 'green';
+            signupMessage.textContent = body.message || 'Signup successful!';
+            document.getElementById('signupForm').reset();
+        } else {
+            signupMessage.textContent = body.error || 'Signup failed.';
+        }
+        })
+        .catch(() => {
+            signupMessage.textContent = 'Error sending request.';
+        });
+    });
     // Google Sign-In Initialization
     function handleCredentialResponse(response) {
         fetch('/api/auth/google/signin', {
@@ -308,6 +326,7 @@
         });
     }
 
+
     // Render the Google Sign-In button after the script loads
     window.onload = function () {
         google.accounts.id.initialize({
@@ -321,25 +340,7 @@
         // Also render the One Tap prompt
         google.accounts.id.prompt();
     };
-        fetch('/api/user/signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(userData)
-        })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(({ status, body }) => {
-            if (status >= 200 && status < 300) {
-            signupMessage.style.color = 'green';
-            signupMessage.textContent = body.message || 'Signup successful!';
-            document.getElementById('signupForm').reset();
-        } else {
-            signupMessage.textContent = body.error || 'Signup failed.';
-        }
-        })
-        .catch(() => {
-            signupMessage.textContent = 'Error sending request.';
-        });
-    });
+
 </script>
 </body>
 </html>

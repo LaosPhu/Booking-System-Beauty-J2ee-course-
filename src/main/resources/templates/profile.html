@@ -168,7 +168,7 @@
 
                       const payment = paymentMap.get(booking.bookingId);
                       //  Use the payment status from the map.  Default to 'Pending' if not found.
-                      const paymentStatus = payment ? payment : 'Completed';
+                      const paymentStatus = payment ? payment : 'Pending';
 
                       paymentStatusCell.textContent = paymentStatus;
                       paymentMethodCell.textContent = booking.paymentMethod;

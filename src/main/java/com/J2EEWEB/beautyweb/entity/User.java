@@ -202,4 +202,5 @@ public class User {
     public void setAuthProvider(AuthProvider authProvider) {
         this.authProvider = authProvider;
     }
+}
 
