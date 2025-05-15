@@ -4,16 +4,14 @@ import com.J2EEWEB.beautyweb.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/user")
@@ -190,7 +188,154 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchUser(
+            @RequestParam("type") String type,
+            @RequestParam("value") String value
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        List<User> results = new ArrayList<>();
 
+        if (type == null || value == null || type.isEmpty() || value.isEmpty()) {
+            response.put("error", "Missing search parameters");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        switch (type.toLowerCase()) {
+            case "id":
+                try {
+                    Long id = Long.parseLong(value);
+                    userRepository.findById(id).ifPresent(results::add);
+                } catch (NumberFormatException e) {
+                    response.put("error", "Invalid ID format");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                break;
+            case "email":
+                userRepository.findByEmail(value).ifPresent(results::add);
+                break;
+            case "phone":
+                userRepository.findByPhoneNumber(value).ifPresent(results::add);
+                break;
+            case "username":
+                userRepository.findByUsername(value).ifPresent(results::add);
+                break;
+            default:
+                response.put("error", "Invalid search type");
+                return ResponseEntity.badRequest().body(response);
+        }
+
+        response.put("results", results);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/add")
+    public ResponseEntity<?> createUser(@RequestBody @Valid User user) {
+        List<String> errors = new ArrayList<>();
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            errors.add("Email already exists");
+        }
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            errors.add("Username already exists");
+        }
+        if (userRepository.findByPhoneNumber(user.getPhoneNumber()).isPresent()) {
+            errors.add("Phone number already exists");
+        }
+
+        if (!errors.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("errors", errors);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        user.setRole("customer");
+        user.setStatus(true);
+        user.setRegistrationDate(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "User created successfully");
+        return ResponseEntity.ok(response);
+    }
+    @PutMapping("/delete/{userId}")
+    public ResponseEntity<User> deleteUser(@PathVariable Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setStatus(false);  // Đổi trạng thái sang false (xóa mềm)
+            userRepository.save(user);  // Lưu lại user
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+    @GetMapping("/get/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @RequestBody User updatedUser) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        User user = userOptional.get();
+
+        // Validate email format
+        if (updatedUser.getEmail() == null || !updatedUser.getEmail().contains("@")) {
+            return ResponseEntity.badRequest().body("Invalid email format");
+        }
+
+        // Validate phone number length = 10
+        if (updatedUser.getPhoneNumber() == null || updatedUser.getPhoneNumber().length() != 10) {
+            return ResponseEntity.badRequest().body("Phone number must be exactly 10 digits");
+        }
+
+        // Validate password length >= 8
+        if (updatedUser.getPassword() == null || updatedUser.getPassword().length() < 8) {
+            return ResponseEntity.badRequest().body("Password must be at least 8 characters");
+        }
+
+        Optional<User> emailOwner = userRepository.findByEmail(updatedUser.getEmail());
+        if (emailOwner.isPresent() && !emailOwner.get().getUserId().equals(userId)) {
+            return ResponseEntity.badRequest().body("Email is already in use");
+        }
+
+        Optional<User> usernameOwner = userRepository.findByUsername(updatedUser.getUsername());
+        if (usernameOwner.isPresent() && !usernameOwner.get().getUserId().equals(userId)) {
+            return ResponseEntity.badRequest().body("Username is already in use");
+        }
+
+        Optional<User> phoneOwner = userRepository.findByPhoneNumber(updatedUser.getPhoneNumber());
+        if (phoneOwner.isPresent() && !phoneOwner.get().getUserId().equals(userId)) {
+            return ResponseEntity.badRequest().body("Phone number is already in use");
+        }
+
+        // Update user info
+        user.setFirstName(updatedUser.getFirstName());
+        user.setLastName(updatedUser.getLastName());
+        user.setEmail(updatedUser.getEmail());
+        user.setPhoneNumber(updatedUser.getPhoneNumber());
+        user.setPassword(updatedUser.getPassword());
+        user.setUsername(updatedUser.getUsername());
+
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "User updated successfully"));
+    }
+    @GetMapping("/count-by-role")
+    public Map<String, Long> countUsersByRole() {
+        long customers = userRepository.countByRole("customer");
+        long admins = userRepository.countByRole("admin");
+        // Có thể mở rộng nếu có nhiều role khác
+        Map<String, Long> result = new HashMap<>();
+        result.put("customer", customers);
+        result.put("admin", admins);
+        return result;
+    }
 }
 
 

@@ -17,14 +17,5 @@ import java.util.List;
 @Controller
 public class ServiceManagementController {
 
-    @Autowired
-    private ServiceRepository serviceRepository;
 
-
-    @GetMapping("/admin-service")
-    public String adminServicePage(Model model, HttpSession session) {
-        List<Service> services = serviceRepository.findAll();
-        model.addAttribute("services", services);
-        return "admin/admin-service";
-    }
 }

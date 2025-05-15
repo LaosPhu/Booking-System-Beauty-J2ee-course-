@@ -6,12 +6,14 @@ import com.J2EEWEB.beautyweb.repository.ServiceRepository;
 import com.J2EEWEB.beautyweb.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/service")
@@ -71,4 +73,25 @@ public class ServiceController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/images")
+    public ResponseEntity<List<String>> getImageList() {
+        try {
+            // Giả sử thư mục ảnh ở src/main/resources/static/images
+            File folder = new File(new ClassPathResource("static/images").getFile().getAbsolutePath());
+            String[] imageFiles = folder.list((dir, name) -> name.matches(".*\\.(png|jpg|jpeg|gif)"));
+            List<String> images = imageFiles != null ? Arrays.asList(imageFiles) : new ArrayList<>();
+            return new ResponseEntity<>(images, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Long>> countServices() {
+        long count = serviceRepository.count();
+        Map<String, Long> response = new HashMap<>();
+        response.put("count", count);
+        return ResponseEntity.ok(response);
+    }
+
 }

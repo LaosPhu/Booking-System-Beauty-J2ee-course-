@@ -347,5 +347,26 @@ public class BookingRestController {
         }
     }
 
+    @PutMapping("/edit/{bookingId}")
+    public ResponseEntity<Void> updateBookingStatus(@PathVariable Long bookingId,
+                                                    @RequestBody Booking dto) {
+        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            booking.setBookingStatus(dto.getBookingStatus());
+            bookingRepository.save(booking);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Long>> countServices() {
+        long count = bookingRepository.count();
+        Map<String, Long> response = new HashMap<>();
+        response.put("count", count);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
