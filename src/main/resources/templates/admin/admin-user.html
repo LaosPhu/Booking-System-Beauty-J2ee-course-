@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    <link rel="stylesheet" href="/css/adminbooking.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+
+    <style>
+
+
+        /* Custom styles for the admin dashboard layout */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9; /* Light background */
+        }
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .admin-sidebar {
+            background-color: #30303d; /* Dark sidebar */
+            color: white;
+            width: 250px; /* Fixed width */
+            padding-top: 20px;
+            transition: width 0.3s ease; /* Smooth transition for collapsing */
+            position: fixed; /* Fixed position */
+            height: 100%;
+            overflow-y: auto; /* Scrollable content */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10; /* Ensure sidebar is above other elements */
+        }
+
+        .admin-sidebar .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .admin-sidebar .logo a{
+          color: white;
+          font-size: 24px;
+          font-weight: bold;
+          text-decoration: none;
+        }
+
+        .admin-sidebar .nav-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .admin-sidebar .nav-item:hover {
+            background-color: #444451; /* Darker hover */
+        }
+
+        .admin-sidebar .nav-item.active {
+            background-color: #4a148c; /* Active color */
+        }
+
+        .admin-sidebar .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex; /* Use flexbox for icon alignment */
+            align-items: center; /* Vertically center icon and text */
+            gap: 10px; /* Space between icon and text */
+        }
+
+        .admin-sidebar .nav-link i {
+            margin-right: 5px; /* Space between icon and text */
+            width: 20px; /* Fixed width for icons */
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1; /* Take up remaining space */
+            padding: 20px;
+            padding-left: 270px; /* Leave space for the sidebar */
+            transition: padding-left 0.3s ease; /* Smooth transition for content shift */
+            min-height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        .content-wrapper {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) { /* Medium screens and below (tablets) */
+            .admin-sidebar {
+                width: 100%; /* Full width on small screens */
+                position: fixed; /* Make it fixed */
+                top: 0;
+                left: 0;
+                z-index: 1000; /* High z-index to be on top */
+                transform: translateX(-100%); /* Start off-screen */
+                transition: transform 0.3s ease; /* Smooth slide-in */
+                height: 100vh;
+                overflow-y: auto;
+            }
+            .admin-sidebar.show {
+                transform: translateX(0); /* Slide in when show class is added */
+            }
+            .main-content {
+                padding-left: 20px; /* Reduce padding-left on small screens */
+            }
+            .menu-toggle {
+                display: block; /* Show menu toggle button */
+            }
+        }
+
+        /* Menu Toggle Button */
+        .menu-toggle {
+            position: fixed; /* Fix button to the top left */
+            top: 10px;
+            left: 10px;
+            background-color: #4a148c;
+            color: white;
+            border: none;
+            padding: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1001; /* Sit on top of everything */
+            display: none; /* Hide by default on larger screens */
+            align-items: center;
+            gap: 5px;
+        }
+
+        .menu-toggle i{
+            font-size: 18px;
+        }
+        .hidden{
+          display: none;
+        }
+
+
+        .table-wrapper {
+        max-height: 500px; /* Giới hạn chiều cao của bảng (khoảng 6 dòng) */
+        overflow-y: auto;  /* Thêm thanh cuộn dọc */
+        -webkit-overflow-scrolling: touch; /* Cuộn mượt mà trên thiết bị di động */
+    }
+
+        .table {
+            width: 100%;  /* Đảm bảo bảng chiếm toàn bộ chiều rộng */
+        }
+
+        .table thead, table tbody tr {
+            width: 100%;
+            table-layout: fixed;
+        }
+        .sticky-header th {
+            position: sticky;
+            top: 0;
+            background-color: #343a40; /* Đảm bảo tiêu đề có nền màu */
+            z-index: 1;
+        }
+
+        #add-service-btn {
+        margin-bottom: 20px;  /* Cách ra một chút với bảng */
+        font-size: 16px; /* Kích thước chữ */
+        padding: 10px 20px; /* Padding của nút */
+    }
+
+    </style>
+</head>
+<body>
+<div class="admin-container">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="logo">
+            <a href="#">Bliss Admin</a>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="/admin" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item active">
+                <a href="/admin-user" class="nav-link">
+                    <i class="fas fa-users"></i> <span>Users</span>
+                </a>
+            </div>
+            <div class="nav-item ">
+                <a href="/admin-service" class="nav-link">
+                    <i class="fas fa-spa"></i> <span>Services</span>
+                </a>
+            </div>
+            <div class="nav-item ">
+                <a href="/admin-booking" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i> <span>Bookings</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-comments"></i> <span>Reviews</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-bar"></i> <span>Reports</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a  onclick="logout()" href="#" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <h2>User List</h2>
+            <div class="card mb-4 p-3 shadow-sm border-0" style="background-color: #e0f2f1;">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <input type="text" id="search-input" class="form-control border-teal" placeholder="Enter value to search">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="search-type" class="form-select border-teal">
+                            <option value="">-- Search by --</option>
+                            <option value="id">User ID</option>
+                            <option value="phone">Phone Number</option>
+                            <option value="email">Email</option>
+                            <option value="username">Username</option>
+                        </select>
+                    </div>
+                        <div class="col-md-2">
+                            <button id="search-btn" class="btn btn-teal w-100 h-100">
+                                <i class="fas fa-search me-1"></i> Search
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="reset-btn" class="btn btn-secondary w-100 h-100">
+                                <i class="fas fa-sync-alt me-1"></i> Reset
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="add-btn" class="btn btn-primary w-100 h-100" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="fas fa-plus me-1"></i> Add
+                            </button>
+                        </div>
+                    </div>
+
+            </div>
+            <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-user-form">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                                        <input type="text" class="form-control" id="phoneNumber" pattern="\d{10}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="username" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="password" minlength="8" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="address" class="form-label">Address</label>
+                                        <input type="text" class="form-control" id="address" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button class="btn btn-primary" id="submit-user-btn">Add User</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark sticky-header">
+                    <tr>
+                        <th>ID</th>
+                        <th>Address</th>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone Number</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Registration Date</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td th:text="${user.userId}"></td>
+                        <td th:text="${user.address}"></td>
+                        <td th:text="${user.email}"></td>
+                        <td th:text="${user.firstName}"></td>
+                        <td th:text="${user.lastName}"></td>
+                        <td th:text="${user.phoneNumber}"></td>
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${user.password}"></td>
+                        <td th:text="${#temporals.format(user.registrationDate, 'dd-MM-yyyy HH:mm')}"></td>
+                        <td th:text="${user.role}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Modal Edit User -->
+        <div class="modal fade" id="edit-user-modal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form id="edit-user-form" class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-userId" />
+
+                        <div class="mb-3">
+                            <label for="edit-username" class="form-label">Username</label>
+                            <input type="text" id="edit-username" class="form-control" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-firstName" class="form-label">First Name</label>
+                            <input type="text" id="edit-firstName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-lastName" class="form-label">Last Name</label>
+                            <input type="text" id="edit-lastName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-email" class="form-label">Email</label>
+                            <input type="email" id="edit-email" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-phoneNumber" class="form-label">Phone Number</label>
+                            <input type="text" id="edit-phoneNumber" class="form-control" required maxlength="10" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-password" class="form-label">Password</label>
+                            <input type="password" id="edit-password" class="form-control" required minlength="8" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit-address" class="form-label">Address</label>
+                            <input type="text" id="edit-address" class="form-control" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-registrationDate" class="form-label">Registration Date</label>
+                            <input type="text" id="edit-registrationDate" class="form-control" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-role" class="form-label">Role</label>
+                            <input type="text" id="edit-role" class="form-control" readonly />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="save-edit-btn">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<script>
+    async function fetchJSON(url, method = 'GET', body = null) {
+        const res = await fetch(url, {
+            method,
+            headers: body ? { 'Content-Type': 'application/json' } : {},
+            body: body ? JSON.stringify(body) : null
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.errors?.join(', ') || data.message || "Request failed");
+        return data;
+    }
+
+    function populateRow(user) {
+        return `
+            <td>${user.userId}</td>
+            <td>${user.address}</td>
+            <td>${user.email}</td>
+            <td>${user.firstName}</td>
+            <td>${user.lastName}</td>
+            <td>${user.phoneNumber}</td>
+            <td>${user.username}</td>
+            <td>${user.password}</td>
+            <td>${user.registrationDate ?? ''}</td>
+            <td>${user.role}</td>
+            <td>
+                <button class="btn btn-sm btn-warning edit-btn" data-id="${user.userId}">Edit</button>
+                <button class="btn btn-sm btn-danger delete-btn" data-id="${user.userId}">Delete</button>
+            </td>`;
+    }
+
+    async function fetchUsers() {
+        try {
+            const data = await fetchJSON('/api/user/getAll');
+            const users = data.filter(u => u.status);
+            renderTable(users);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderTable(users) {
+        const tbody = document.querySelector("table tbody");
+        tbody.innerHTML = users.length
+            ? users.map(u => `<tr>${populateRow(u)}</tr>`).join("")
+            : `<tr><td colspan="11" class="text-center text-muted">No users found.</td></tr>`;
+        attachActionButtons();
+    }
+
+    function attachActionButtons() {
+        document.querySelectorAll(".delete-btn").forEach(btn =>
+            btn.onclick = () => confirm("Delete user?") && deleteUser(btn.dataset.id)
+        );
+
+        document.querySelectorAll(".edit-btn").forEach(btn =>
+            btn.onclick = () => openEditModal(btn.dataset.id)
+        );
+    }
+
+    async function deleteUser(userId) {
+        try {
+            await fetchJSON(`/api/user/delete/${userId}`, "PUT");
+            alert("User deleted.");
+            fetchUsers();
+        } catch (err) {
+            alert("Error deleting: " + err.message);
+        }
+    }
+
+    async function openEditModal(userId) {
+        try {
+            const user = await fetchJSON(`/api/user/get/${userId}`);
+            ["userId", "username", "address", "registrationDate", "role"].forEach(id =>
+                document.getElementById(`edit-${id}`).value = user[id] || ""
+            );
+            ["firstName", "lastName", "email", "phoneNumber", "password"].forEach(id =>
+                document.getElementById(`edit-${id}`).value = user[id] || ""
+            );
+            new bootstrap.Modal(document.getElementById('edit-user-modal')).show();
+        } catch (err) {
+            alert("Load error: " + err.message);
+        }
+    }
+
+    document.getElementById("edit-user-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const userId = document.getElementById("edit-userId").value;
+    const payload = {
+        firstName: document.getElementById("edit-firstName").value.trim(),
+        lastName: document.getElementById("edit-lastName").value.trim(),
+        email: document.getElementById("edit-email").value.trim(),
+        phoneNumber: document.getElementById("edit-phoneNumber").value.trim(),
+        password: document.getElementById("edit-password").value.trim(),
+        username: document.getElementById("edit-username").value.trim() // nếu có field username
+    };
+
+    // Frontend basic validation
+    if (!payload.email.includes("@") || payload.password.length < 8 || payload.phoneNumber.length !== 10) {
+        return alert("Invalid email, password or phone number");
+    }
+
+    try {
+        const response = await fetch(`/api/user/update/${userId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorMsg = await response.text();
+            return alert("Update error: " + errorMsg);
+        }
+
+        alert("User updated.");
+        fetchUsers(); // tải lại danh sách user sau khi update
+        // Nếu có modal, bạn có thể tắt modal ở đây, ví dụ:
+        // bootstrap.Modal.getInstance(document.getElementById('edit-user-modal')).hide();
+
+    } catch (err) {
+        alert("Update error: " + err.message);
+    }
+};
+
+    document.getElementById("submit-user-btn").onclick = async () => {
+        const payload = {
+            firstName: document.getElementById("firstName").value.trim(),
+            lastName: document.getElementById("lastName").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            phoneNumber: document.getElementById("phoneNumber").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value.trim()
+        };
+
+        if (!payload.email.includes("@") || payload.password.length < 8 || payload.phoneNumber.length !== 10)
+            return alert("Invalid email, password or phone number");
+
+        try {
+            await fetchJSON("/api/user/add", "POST", payload);
+            alert("User added.");
+            document.getElementById("add-user-form").reset();
+            fetchUsers();
+        } catch (err) {
+            alert("Add error: " + err.message);
+        }
+    };
+
+    document.getElementById("search-btn").onclick = async () => {
+        const type = document.getElementById("search-type").value;
+        const val = document.getElementById("search-input").value.trim();
+        if (!type || !val) return alert("Choose type and enter value");
+
+        try {
+            const result = await fetchJSON(`/api/user/search?type=${type}&value=${encodeURIComponent(val)}`);
+            renderTable(result.results || []);
+        } catch (err) {
+            alert("Search error: " + err.message);
+        }
+    };
+
+    document.getElementById("reset-btn").onclick = () => {
+    document.getElementById("search-type").value = "";
+    document.getElementById("search-input").value = "";
+    fetchUsers();
+};
+    window.onload = fetchUsers;
+</script>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

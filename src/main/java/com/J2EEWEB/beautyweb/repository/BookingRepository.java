@@ -16,6 +16,10 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
     Optional<Booking> getBookingByBookingId(Long bookingId);
 
     boolean existsByCustomerUserIdAndAppointmentDateTime(Long userId, LocalDateTime bookingDateTime);
+    boolean existsByCustomerAndAppointmentDateTime(User customer, LocalDateTime appointmentDateTime);
 
     long countByAppointmentDateTime(LocalDateTime bookingDateTime);
+
+    long count();
+
 }

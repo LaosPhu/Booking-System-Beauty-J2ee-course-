@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/responsive.css">
+    <link rel="stylesheet" href="/css/adminbooking.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
@@ -150,7 +151,7 @@
 
 
     .table-wrapper {
-    max-height: 300px; /* Giới hạn chiều cao của bảng (khoảng 6 dòng) */
+    max-height: 500px; /* Giới hạn chiều cao của bảng (khoảng 6 dòng) */
     overflow-y: auto;  /* Thêm thanh cuộn dọc */
     -webkit-overflow-scrolling: touch; /* Cuộn mượt mà trên thiết bị di động */
 }
@@ -170,10 +171,7 @@
         z-index: 1;
     }
 
-    #add-service-btn {
-    margin-bottom: 20px;  /* Cách ra một chút với bảng */
-    font-size: 16px; /* Kích thước chữ */
-    padding: 10px 20px; /* Padding của nút */
+
 }
 
 </style>
@@ -191,7 +189,7 @@
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="/admin-user" class="nav-link">
                     <i class="fas fa-users"></i> <span>Users</span>
                 </a>
             </div>
@@ -201,7 +199,7 @@
                 </a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="/admin-booking" class="nav-link">
                     <i class="fas fa-calendar-alt"></i> <span>Bookings</span>
                 </a>
             </div>
@@ -226,11 +224,42 @@
     <main class="main-content" id="main-content">
         <div class="content-wrapper">
             <h2>Service List</h2>
-            <!-- Nút Thêm Dữ Liệu -->
-            <button class="btn btn-primary" id="add-service-btn" data-bs-toggle="modal" data-bs-target="#add-service-modal">
-                Add Service
-            </button>
+            <div class="card mb-4 p-3 shadow-sm border-0" style="background-color: #e0f2f1;">
 
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <input type="text" id="search-id" class="form-control border-teal h-100" placeholder="Search by Service ID">
+                        </div>
+
+                        <div class="col-md-3">
+                            <select id="sort-price" class="form-select h-100">
+                                <option value="">Sort by Price</option>
+                                <option value="asc">Price: Low to High</option>
+                                <option value="desc">Price: High to Low</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button id="search-btn" class="btn btn-teal w-100 h-100">
+                                <i class="fas fa-search me-1"></i> Search
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button id="reset-btn" class="btn btn-secondary w-100 h-100">
+                                <i class="fas fa-sync-alt me-1"></i> Reset
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100 h-100" id="add-service-btn" data-bs-toggle="modal" data-bs-target="#add-service-modal">
+                                <i class="fas fa-plus me-1"></i> Add Service
+                            </button>
+                        </div>
+
+                </div>
+
+            </div>
             <!-- Wrapper for horizontal scrolling -->
             <div class="table-wrapper">
                 <table class="table table-bordered table-striped">
@@ -253,7 +282,7 @@
                         <td th:text="${service.category}"></td>
                         <td th:text="${service.description}"></td>
                         <td th:text="${service.duration}"></td>
-                        <td th:text="${service.imageURL}"></td>
+                        <td><img th:src="${service.imageURL}" alt="Service Image" style="width: 100px; height: auto;"></td>
                         <td th:text="${service.price}"></td>
                     </tr>
                     </tbody>
@@ -287,9 +316,15 @@
                                 <label for="service-duration" class="form-label">Duration (in minutes)</label>
                                 <input type="number" class="form-control" id="service-duration" placeholder="Enter duration" required>
                             </div>
+                            <!-- Thay input nhập URL ảnh bằng bộ chọn ảnh -->
                             <div class="mb-3">
-                                <label for="service-image" class="form-label">Image URL</label>
-                                <input type="text" class="form-control" id="service-image" placeholder="Enter image URL" required>
+                                <label class="form-label">Choose Image</label>
+                                <div id="image-selection" style="display:flex; flex-wrap: wrap; gap: 10px; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 5px;">
+                                    <!-- Ảnh sẽ được load ở đây -->
+                                    <p>Loading images...</p>
+                                </div>
+                                <!-- Input ẩn để lưu ảnh được chọn -->
+                                <input type="hidden" id="service-image" name="service-image" required>
                             </div>
                             <div class="mb-3">
                                 <label for="service-price" class="form-label">Price</label>
@@ -309,146 +344,186 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Chỉnh sửa dịch vụ</h5>
+                        <h5 class="modal-title">Edit Service</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" id="edit-id">
-                        <input type="text" id="edit-name" class="form-control mb-2" placeholder="Tên dịch vụ">
-                        <input type="text" id="edit-category" class="form-control mb-2" placeholder="Danh mục">
-                        <textarea id="edit-description" class="form-control mb-2" placeholder="Mô tả"></textarea>
-                        <input type="number" id="edit-duration" class="form-control mb-2" placeholder="Thời lượng (phút)">
-                        <input type="text" id="edit-image" class="form-control mb-2" placeholder="URL hình ảnh">
-                        <input type="number" id="edit-price" class="form-control mb-2" placeholder="Giá (VNĐ)">
+                        <div class="mb-3">
+                            <label for="edit-name" class="form-label">Service Name</label>
+                            <input type="text" id="edit-name" class="form-control" placeholder="Enter service name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-category" class="form-label">Category</label>
+                            <input type="text" id="edit-category" class="form-control" placeholder="Enter category" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-description" class="form-label">Description</label>
+                            <textarea id="edit-description" class="form-control" rows="3" placeholder="Enter description" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-duration" class="form-label">Duration (in minutes)</label>
+                            <input type="number" id="edit-duration" class="form-control" placeholder="Enter duration" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Choose Image</label>
+                            <div id="edit-image-selection"
+                                 style="display:flex; flex-wrap: wrap; gap: 10px; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 5px;">
+                                <!-- Ảnh sẽ được load ở đây -->
+                                <p>Loading images...</p>
+                            </div>
+                            <input type="hidden" id="edit-image" name="edit-image" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit-price" class="form-label">Price</label>
+                            <input type="number" id="edit-price" class="form-control" placeholder="Enter price" required>
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="button" id="save-edit-btn" class="btn btn-success">Lưu</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="save-edit-btn" class="btn btn-success">Save</button>
                     </div>
                 </div>
             </div>
         </div>
 
+
     </main>
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Fetch danh sách dịch vụ
-        fetch('/api/service/getAll')
-            .then(response => response.json())
-            .then(data => {
-                // Lọc các dịch vụ có status = true
-                const filteredServices = data.filter(service => service.status === true);
+        fetchServices();
 
-                // Render vào bảng
-                const tableBody = document.querySelector("table tbody");
-                tableBody.innerHTML = '';
-
-                filteredServices.forEach(service => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${service.serviceId}</td>
-                        <td>${service.name}</td>
-                        <td>${service.category}</td>
-                        <td>${service.description}</td>
-                        <td>${service.duration}</td>
-                        <td>${service.imageURL}</td>
-                        <td>${service.price}</td>
-                        <td>
-                            <button class="edit-btn btn btn-warning btn-sm"
-                                data-id="${service.serviceId}"
-                                data-name="${service.name}"
-                                data-category="${service.category}"
-                                data-description="${service.description}"
-                                data-duration="${service.duration}"
-                                data-image="${service.imageURL}"
-                                data-price="${service.price}">
-                            Edit</button>
-                            <button class="delete-btn btn btn-danger btn-sm" data-id="${service.serviceId}">Delete</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-                // Gán lại sự kiện Edit sau khi render
-                attachEditEvents();
-                // Gán lại sự kiện Delete
-                attachDeleteEvents();
-            })
-            .catch(error => console.error('Error fetching services:', error));
-
-        // Hàm xử lý xóa dịch vụ (PUT đổi status = false)
-        function deleteService(serviceId) {
-            fetch(`/api/service/delete/${serviceId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    alert('Service deleted successfully');
-                    location.reload();
-                } else {
-                    alert('Service not found');
-                }
-            })
-            .catch(error => console.error('Error deleting service:', error));
+        // Load tất cả dịch vụ
+        function fetchServices() {
+            fetch('/api/service/getAll')
+                .then(response => response.json())
+                .then(data => {
+                    const filtered = data.filter(service => service.status === true);
+                    renderTable(filtered);
+                })
+                .catch(error => console.error('Error fetching services:', error));
         }
 
-        // Thêm dịch vụ mới
-        document.getElementById('submit-service-btn').addEventListener('click', function () {
-            const serviceData = {
-                name: document.getElementById('service-name').value,
-                description: document.getElementById('service-description').value,
-                duration: document.getElementById('service-duration').value,
-                price: parseFloat(document.getElementById('service-price').value),
-                category: document.getElementById('service-category').value,
-                imageURL: document.getElementById('service-image').value
-            };
+        // Render bảng dịch vụ
+        function renderTable(serviceList) {
+            const tableBody = document.querySelector("table tbody");
+            tableBody.innerHTML = '';
 
-            fetch('/api/service/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(serviceData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    alert('Service added successfully!');
-                    $('#add-service-modal').modal('hide');
-                    location.reload();
-                } else {
-                    alert('Failed to add service');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('There was an error adding the service.');
+            serviceList.forEach(service => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${service.serviceId}</td>
+                    <td>${service.name}</td>
+                    <td>${service.category}</td>
+                    <td>${service.description}</td>
+                    <td>${service.duration}</td>
+                    <td><img src="${service.imageURL}" alt="Service Image" style="width: 100px; height: auto;"></td>
+                    <td>${service.price}</td>
+                    <td>
+                        <button class="edit-btn btn btn-warning btn-sm"
+                            data-id="${service.serviceId}"
+                            data-name="${service.name}"
+                            data-category="${service.category}"
+                            data-description="${service.description}"
+                            data-duration="${service.duration}"
+                            data-image="${service.imageURL}"
+                            data-price="${service.price}">
+                        Edit</button>
+                        <button class="delete-btn btn btn-danger btn-sm" data-id="${service.serviceId}">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
             });
+
+            attachEditEvents();
+            attachDeleteEvents();
+        }
+
+        // Tìm kiếm theo serviceId
+        document.getElementById("search-btn").addEventListener("click", function () {
+            const searchId = document.getElementById("search-id").value.trim();
+
+            fetch('/api/service/getAll')
+                .then(response => response.json())
+                .then(data => {
+                    const filtered = data.filter(service =>
+                        service.status === true &&
+                        service.serviceId.toString().includes(searchId)
+                    );
+                    renderTable(filtered);
+                })
+                .catch(error => console.error('Error searching services:', error));
         });
 
-        // Hàm xử lý gán sự kiện Edit
-        function attachEditEvents() {
-            document.querySelectorAll(".edit-btn").forEach(function (btn) {
-                btn.addEventListener("click", function () {
-                    document.getElementById("edit-id").value = btn.getAttribute("data-id");
-                    document.getElementById("edit-name").value = btn.getAttribute("data-name");
-                    document.getElementById("edit-category").value = btn.getAttribute("data-category");
-                    document.getElementById("edit-description").value = btn.getAttribute("data-description");
-                    document.getElementById("edit-duration").value = btn.getAttribute("data-duration");
-                    document.getElementById("edit-image").value = btn.getAttribute("data-image");
-                    document.getElementById("edit-price").value = btn.getAttribute("data-price");
+        // Sắp xếp theo giá
+        document.getElementById("sort-price").addEventListener("change", function () {
+            const sortValue = this.value;
+            fetch('/api/service/getAll')
+                .then(response => response.json())
+                .then(data => {
+                    const filtered = data.filter(service => service.status === true);
 
-                    $('#edit-service-modal').modal('show');
-                });
-            });
+                    if (sortValue === "asc") {
+                        filtered.sort((a, b) => a.price - b.price);
+                    } else if (sortValue === "desc") {
+                        filtered.sort((a, b) => b.price - a.price);
+                    }
+
+                    renderTable(filtered);
+                })
+                .catch(error => console.error('Error sorting services:', error));
+        });
+
+        // Reset tìm kiếm và sắp xếp
+        document.getElementById("reset-btn").addEventListener("click", function () {
+            document.getElementById("search-id").value = "";
+            document.getElementById("sort-price").value = "";
+            fetchServices();
+        });
+
+        // Xoá dịch vụ
+        function deleteService(serviceId) {
+            const confirmDelete = confirm("Are you sure you want to delete this service?");
+            if (!confirmDelete) return;
+
+            fetch(`/api/service/delete/${serviceId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        alert('Service deleted successfully');
+                        fetchServices();
+                    } else {
+                        alert('Service not found');
+                    }
+                })
+                .catch(error => console.error('Error deleting service:', error));
         }
 
-        // Hàm xử lý gán sự kiện Delete
+        // Gán sự kiện nút Edit
+        function attachEditEvents() {
+    const editButtons = document.querySelectorAll(".edit-btn");
+    editButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const service = {
+                id: button.getAttribute("data-id"),
+                name: button.getAttribute("data-name"),
+                category: button.getAttribute("data-category"),
+                description: button.getAttribute("data-description"),
+                duration: button.getAttribute("data-duration"),
+                imageURL: button.getAttribute("data-image"),
+                price: button.getAttribute("data-price")
+            };
+            openEditModal(service);  // <-- gọi hàm bạn đã viết ở đây
+        });
+    });
+}
+
+        // Gán sự kiện nút Delete
         function attachDeleteEvents() {
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function () {
@@ -458,7 +533,7 @@
             });
         }
 
-        // Gửi PUT khi nhấn "Lưu" để cập nhật dịch vụ
+        // Gửi PUT để cập nhật dịch vụ
         document.getElementById("save-edit-btn").addEventListener("click", function () {
             const id = document.getElementById("edit-id").value;
             const updatedService = {
@@ -477,19 +552,162 @@
                 },
                 body: JSON.stringify(updatedService)
             })
-            .then(response => {
-                if (response.ok) {
-                    alert('Cập nhật thành công!');
-                    location.reload();
+                .then(response => {
+                    if (response.ok) {
+                        alert('Cập nhật thành công!');
+                        fetchServices();
+                        $('#edit-service-modal').modal('hide');
+                    } else {
+                        alert('Có lỗi xảy ra khi cập nhật.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating service:', error);
+                });
+        });
+
+        function loadEditImages(selectedImageUrl) {
+    fetch('/api/service/images')
+        .then(res => res.json())
+        .then(images => {
+            const container = document.getElementById('edit-image-selection');
+            container.innerHTML = '';
+
+            if (images.length === 0) {
+                container.innerHTML = '<p>No images found</p>';
+                return;
+            }
+
+            images.forEach(imgName => {
+                const imgPath = `/images/${imgName}`;
+                const img = document.createElement('img');
+                img.src = imgPath;
+                img.style.width = '80px';
+                img.style.height = '80px';
+                img.style.objectFit = 'cover';
+                img.style.cursor = 'pointer';
+                img.style.border = '2px solid transparent';
+                img.title = imgName;
+
+                if (imgPath === selectedImageUrl) {
+                    img.style.border = '2px solid blue';
+                }
+
+                img.addEventListener('click', () => {
+                    document.querySelectorAll('#edit-image-selection img').forEach(i => i.style.border = '2px solid transparent');
+                    img.style.border = '2px solid blue';
+                    document.getElementById('edit-image').value = imgPath;
+                });
+
+                container.appendChild(img);
+            });
+        })
+        .catch(err => {
+            const container = document.getElementById('edit-image-selection');
+            container.innerHTML = '<p>Error loading images</p>';
+            console.error('Error fetching images:', err);
+        });
+}
+        function openEditModal(service) {
+            document.getElementById('edit-id').value = service.id;
+            document.getElementById('edit-name').value = service.name;
+            document.getElementById('edit-category').value = service.category;
+            document.getElementById('edit-description').value = service.description;
+            document.getElementById('edit-duration').value = service.duration;
+            document.getElementById('edit-price').value = service.price;
+            document.getElementById('edit-image').value = service.imageURL;
+            // Load ảnh và highlight ảnh hiện tại
+            loadEditImages(service.imageURL);
+            // Hiển thị modal
+            $('#edit-service-modal').modal('show');
+        }
+
+
+        function loadImageSelection() {
+        fetch('/api/service/images')
+            .then(res => res.json())
+            .then(images => {
+                const container = document.getElementById('image-selection');
+                container.innerHTML = '';
+
+                if (images.length === 0) {
+                    container.innerHTML = '<p>No images found</p>';
+                    return;
+                }
+
+                images.forEach(imgName => {
+                    const img = document.createElement('img');
+                    img.src = `/images/${imgName}`;
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.objectFit = 'cover';
+                    img.style.cursor = 'pointer';
+                    img.style.border = '2px solid transparent';
+                    img.title = imgName;
+
+                    img.addEventListener('click', () => {
+                        document.querySelectorAll('#image-selection img').forEach(i => i.style.border = '2px solid transparent');
+                        img.style.border = '2px solid blue';
+                        document.getElementById('service-image').value = `/images/${imgName}`;
+                    });
+
+                    container.appendChild(img);
+                });
+            })
+            .catch(err => {
+                const container = document.getElementById('image-selection');
+                container.innerHTML = '<p>Error loading images</p>';
+                console.error('Error fetching images:', err);
+            });
+    }
+
+    // Gọi load ảnh khi mở modal thêm dịch vụ
+    const addServiceModal = document.getElementById('add-service-modal');
+    addServiceModal.addEventListener('show.bs.modal', loadImageSelection);
+
+    // Thêm dịch vụ mới
+    document.getElementById('submit-service-btn').addEventListener('click', function () {
+        const serviceData = {
+            name: document.getElementById('service-name').value,
+            description: document.getElementById('service-description').value,
+            duration: parseInt(document.getElementById('service-duration').value),
+            price: parseFloat(document.getElementById('service-price').value),
+            category: document.getElementById('service-category').value,
+            imageURL: document.getElementById('service-image').value
+        };
+
+        if (!serviceData.imageURL) {
+            alert('Please select an image');
+            return;
+        }
+
+        fetch('/api/service/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(serviceData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    alert('Service added successfully!');
+                    $('#add-service-modal').modal('hide');
+                    fetchServices();
                 } else {
-                    alert('Có lỗi xảy ra khi cập nhật.');
+                    alert('Failed to add service');
                 }
             })
             .catch(error => {
-                console.error('Error updating service:', error);
+                console.error('Error:', error);
+                alert('There was an error adding the service.');
             });
-        });
     });
+    });
+    function logout() {
+      sessionStorage.removeItem('isLoggedIn');
+      sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('username');
+      window.location.href='index.html';
+  }
 </script>
 
 <script src="/js/jquery.min.js"></script>

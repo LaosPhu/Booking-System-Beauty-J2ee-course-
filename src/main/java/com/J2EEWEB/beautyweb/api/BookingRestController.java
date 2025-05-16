@@ -595,10 +595,43 @@ public class BookingRestController {
                 booking.getMessage()
         );
     }
+
+    @PutMapping("/edit/{bookingId}")
+    public ResponseEntity<Void> updateBookingStatus(@PathVariable Long bookingId,
+                                                    @RequestBody Booking dto) {
+        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
+        if (bookingOptional.isPresent()) {
+            Booking booking = bookingOptional.get();
+            booking.setBookingStatus(dto.getBookingStatus());
+            bookingRepository.save(booking);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Long>> countServices() {
+        long count = bookingRepository.count();
+        Map<String, Long> response = new HashMap<>();
+        response.put("count", count);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/check-slot")
     public ResponseEntity<Map<String, Object>> checkBookingSlot(@RequestParam String date,
-                                                                @RequestParam String time) {
+                                                                @RequestParam String time,
+                                                                HttpSession session) {
         try {
+            String username = (String) session.getAttribute("username");
+            if (username == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Or a message: "User not logged in"
+            }
+            Optional<User> user = userRepository.findByUsername(username);
+            if (!user.isPresent()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // Or a message: "User not found"
+            }
+            User currentUser = user.get();
+
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -606,17 +639,22 @@ public class BookingRestController {
             LocalTime bookingTime = LocalTime.parse(time, timeFormatter);
             LocalDateTime appointmentDateTime = LocalDateTime.of(bookingDate, bookingTime);
 
-            long count = bookingRepository.countByAppointmentDateTime(appointmentDateTime);
+            boolean alreadyBooked = bookingRepository.existsByCustomerAndAppointmentDateTime(currentUser, appointmentDateTime);
+
+            long bookingCount = bookingRepository.countByAppointmentDateTime(appointmentDateTime);
+            boolean slotFull = bookingCount >= 3;
 
             Map<String, Object> response = new HashMap<>();
-            response.put("count", count);
-            response.put("available", count < 3); // true nếu chưa đủ 3 người
+            response.put("alreadyBooked", alreadyBooked);
+            response.put("available", !alreadyBooked && !slotFull);
 
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Invalid date or time format"));
         }
     }
+
 
 }

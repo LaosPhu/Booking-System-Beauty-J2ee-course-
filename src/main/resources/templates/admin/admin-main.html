@@ -7,138 +7,174 @@
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/responsive.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <style>
-  /* Custom styles for the admin dashboard layout */
-  body {
-      margin: 0;
-      padding: 0;
-      background-color: #f4f6f9; /* Light background */
-  }
-  .admin-container {
-      display: flex;
-      min-height: 100vh;
-  }
+  <link rel="stylesheet" href="/css/adminbooking.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-  /* Sidebar Styles */
-  .admin-sidebar {
-      background-color: #30303d; /* Dark sidebar */
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Add Bootstrap JS (Optional: Popper.js is required for certain Bootstrap components like modals) -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+  <style>
+
+    /* Custom styles for the admin dashboard layout */
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f6f9; /* Light background */
+    }
+    .admin-container {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* Sidebar Styles */
+    .admin-sidebar {
+        background-color: #30303d; /* Dark sidebar */
+        color: white;
+        width: 250px; /* Fixed width */
+        padding-top: 20px;
+        transition: width 0.3s ease; /* Smooth transition for collapsing */
+        position: fixed; /* Fixed position */
+        height: 100%;
+        overflow-y: auto; /* Scrollable content */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 10; /* Ensure sidebar is above other elements */
+    }
+
+    .admin-sidebar .logo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .admin-sidebar .logo a{
       color: white;
-      width: 250px; /* Fixed width */
-      padding-top: 20px;
-      transition: width 0.3s ease; /* Smooth transition for collapsing */
-      position: fixed; /* Fixed position */
-      height: 100%;
-      overflow-y: auto; /* Scrollable content */
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      z-index: 10; /* Ensure sidebar is above other elements */
-  }
-
-  .admin-sidebar .logo {
-      text-align: center;
-      margin-bottom: 20px;
-  }
-  .admin-sidebar .logo a{
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    text-decoration: none;
-  }
-
-  .admin-sidebar .nav-item {
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-  }
-
-  .admin-sidebar .nav-item:hover {
-      background-color: #444451; /* Darker hover */
-  }
-
-  .admin-sidebar .nav-item.active {
-      background-color: #4a148c; /* Active color */
-  }
-
-  .admin-sidebar .nav-link {
-      color: white;
+      font-size: 24px;
+      font-weight: bold;
       text-decoration: none;
-      display: flex; /* Use flexbox for icon alignment */
-      align-items: center; /* Vertically center icon and text */
-      gap: 10px; /* Space between icon and text */
-  }
+    }
 
-  .admin-sidebar .nav-link i {
-      margin-right: 5px; /* Space between icon and text */
-      width: 20px; /* Fixed width for icons */
-      text-align: center;
-  }
+    .admin-sidebar .nav-item {
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
-  /* Main Content Styles */
-  .main-content {
-      flex: 1; /* Take up remaining space */
-      padding: 20px;
-      padding-left: 270px; /* Leave space for the sidebar */
-      transition: padding-left 0.3s ease; /* Smooth transition for content shift */
-      min-height: 100vh;
-      background-color: #f9f9f9;
-  }
+    .admin-sidebar .nav-item:hover {
+        background-color: #444451; /* Darker hover */
+    }
 
-  .content-wrapper {
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
+    .admin-sidebar .nav-item.active {
+        background-color: #4a148c; /* Active color */
+    }
 
-  /* Responsive adjustments for smaller screens */
-  @media (max-width: 768px) { /* Medium screens and below (tablets) */
-      .admin-sidebar {
-          width: 100%; /* Full width on small screens */
-          position: fixed; /* Make it fixed */
-          top: 0;
-          left: 0;
-          z-index: 1000; /* High z-index to be on top */
-          transform: translateX(-100%); /* Start off-screen */
-          transition: transform 0.3s ease; /* Smooth slide-in */
-          height: 100vh;
-          overflow-y: auto;
-      }
-      .admin-sidebar.show {
-          transform: translateX(0); /* Slide in when show class is added */
-      }
-      .main-content {
-          padding-left: 20px; /* Reduce padding-left on small screens */
-      }
-      .menu-toggle {
-          display: block; /* Show menu toggle button */
-      }
-  }
+    .admin-sidebar .nav-link {
+        color: white;
+        text-decoration: none;
+        display: flex; /* Use flexbox for icon alignment */
+        align-items: center; /* Vertically center icon and text */
+        gap: 10px; /* Space between icon and text */
+    }
 
-  /* Menu Toggle Button */
-  .menu-toggle {
-      position: fixed; /* Fix button to the top left */
-      top: 10px;
-      left: 10px;
-      background-color: #4a148c;
-      color: white;
-      border: none;
-      padding: 10px;
-      padding-left: 15px;
-      padding-right: 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 1001; /* Sit on top of everything */
-      display: none; /* Hide by default on larger screens */
-      align-items: center;
-      gap: 5px;
-  }
+    .admin-sidebar .nav-link i {
+        margin-right: 5px; /* Space between icon and text */
+        width: 20px; /* Fixed width for icons */
+        text-align: center;
+    }
 
-  .menu-toggle i{
-      font-size: 18px;
-  }
-  .hidden{
-    display: none;
-  }
-</style>
+    /* Main Content Styles */
+    .main-content {
+        flex: 1; /* Take up remaining space */
+        padding: 20px;
+        padding-left: 270px; /* Leave space for the sidebar */
+        transition: padding-left 0.3s ease; /* Smooth transition for content shift */
+        min-height: 100vh;
+        background-color: #f9f9f9;
+    }
+
+    .content-wrapper {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @media (max-width: 768px) { /* Medium screens and below (tablets) */
+        .admin-sidebar {
+            width: 100%; /* Full width on small screens */
+            position: fixed; /* Make it fixed */
+            top: 0;
+            left: 0;
+            z-index: 1000; /* High z-index to be on top */
+            transform: translateX(-100%); /* Start off-screen */
+            transition: transform 0.3s ease; /* Smooth slide-in */
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .admin-sidebar.show {
+            transform: translateX(0); /* Slide in when show class is added */
+        }
+        .main-content {
+            padding-left: 20px; /* Reduce padding-left on small screens */
+        }
+        .menu-toggle {
+            display: block; /* Show menu toggle button */
+        }
+    }
+
+    /* Menu Toggle Button */
+    .menu-toggle {
+        position: fixed; /* Fix button to the top left */
+        top: 10px;
+        left: 10px;
+        background-color: #4a148c;
+        color: white;
+        border: none;
+        padding: 10px;
+        padding-left: 15px;
+        padding-right: 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        z-index: 1001; /* Sit on top of everything */
+        display: none; /* Hide by default on larger screens */
+        align-items: center;
+        gap: 5px;
+    }
+
+    .menu-toggle i{
+        font-size: 18px;
+    }
+    .hidden{
+      display: none;
+    }
+
+
+    .table-wrapper {
+    max-height: 500px; /* Giới hạn chiều cao của bảng (khoảng 6 dòng) */
+    overflow-y: auto;  /* Thêm thanh cuộn dọc */
+    -webkit-overflow-scrolling: touch; /* Cuộn mượt mà trên thiết bị di động */
+}
+
+    .table {
+        width: 100%;  /* Đảm bảo bảng chiếm toàn bộ chiều rộng */
+    }
+
+    .table thead, table tbody tr {
+        width: 100%;
+        table-layout: fixed;
+    }
+    .sticky-header th {
+        position: sticky;
+        top: 0;
+        background-color: #343a40; /* Đảm bảo tiêu đề có nền màu */
+        z-index: 1;
+    }
+
+
+}
+
+  </style>
 </head>
 <body>
 <div class="admin-container">
@@ -148,12 +184,12 @@
     </div>
     <nav class="nav-menu">
       <div class="nav-item active">
-        <a href="#" class="nav-link">
+        <a href="/admin" class="nav-link">
           <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
         </a>
       </div>
       <div class="nav-item">
-        <a href="#" class="nav-link">
+        <a href="/admin-user" class="nav-link">
           <i class="fas fa-users"></i> <span>Users</span>
         </a>
       </div>
@@ -163,7 +199,7 @@
         </a>
       </div>
       <div class="nav-item">
-        <a href="#" class="nav-link">
+        <a href="/admin-booking" class="nav-link">
           <i class="fas fa-calendar-alt"></i> <span>Bookings</span>
         </a>
       </div>
@@ -184,75 +220,164 @@
       </div>
     </nav>
   </aside>
-
-  <main class="main-content" id="main-content">
-    <button class="menu-toggle" id="menu-toggle">
-      <i class="fas fa-bars"></i> <span class="toggle-text">Menu</span>
-    </button>
+  <div class="main-content">
     <div class="content-wrapper">
-      <h1>Dashboard</h1>
-      <p>Welcome to the admin dashboard! This is where you can manage your spa.</p>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card">
+      <h2 class="mb-4">Dashboard - Bliss Admin</h2>
+
+      <div class="row text-white mb-4">
+        <div class="col-md-3">
+          <div class="card bg-primary">
             <div class="card-body">
-              <h5 class="card-title">Users</h5>
-              <p class="card-text">100</p>
+              <h5 class="card-title">Khách hàng</h5>
+              <p class="card-text fs-4" id="total-customers"></p>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card">
+        <div class="col-md-3">
+          <div class="card bg-success">
             <div class="card-body">
-              <h5 class="card-title">Services</h5>
-              <p class="card-text">15</p>
+              <h5 class="card-title">Dịch vụ</h5>
+              <p class="card-text fs-4" id="total-services"></p>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card">
+        <div class="col-md-3">
+          <div class="card bg-warning">
             <div class="card-body">
-              <h5 class="card-title">Bookings</h5>
-              <p class="card-text">50</p>
+              <h5 class="card-title">Lịch hẹn hôm nay</h5>
+              <p class="card-text fs-4" id="today-bookings">8</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-danger">
+            <div class="card-body">
+              <h5 class="card-title">Doanh thu hôm nay</h5>
+              <p class="card-text fs-4" id="today-revenue">2.500.000đ</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-</div>
 
+      <div class="card mb-4">
+        <div class="card-header">Doanh thu theo ngày</div>
+        <div class="card-body">
+          <canvas id="revenueChart" height="100"></canvas>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">Lịch hẹn hôm nay</div>
+        <div class="card-body table-wrapper">
+          <table class="table table-bordered sticky-header">
+            <thead>
+            <tr>
+              <th>Khách hàng</th>
+              <th>Dịch vụ</th>
+              <th>Thời gian</th>
+              <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>Nguyễn Thảo</td>
+              <td>Massage mặt</td>
+              <td>10:00</td>
+              <td><span class="badge bg-info">Chờ xác nhận</span></td>
+            </tr>
+            <tr>
+              <td>Trần An</td>
+              <td>Gội đầu dưỡng sinh</td>
+              <td>13:30</td>
+              <td><span class="badge bg-success">Đã xác nhận</span></td>
+            </tr>
+            <!-- Thêm các dòng khác ở đây -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Thông báo</div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item">💡 Lịch hẹn của Nguyễn Thảo sẽ diễn ra trong 1 giờ.</li>
+            <li class="list-group-item">⚠️ Dịch vụ "Chăm sóc da chuyên sâu" còn ít lượt.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+        datasets: [{
+          label: 'Doanh thu (VNĐ)',
+          data: [1500000, 1800000, 1200000, 2000000, 2500000, 3000000, 1000000],
+          backgroundColor: '#4a148c'
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return value.toLocaleString('vi-VN') + 'đ';
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</div>
+<script>
+  // Khi trang tải xong thì gọi API đếm số user theo role
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch('/api/user/count-by-role')
+      .then(response => response.json())
+      .then(data => {
+        // data.customer là số lượng khách hàng
+        const totalCustomersElement = document.getElementById('total-customers');
+        if (totalCustomersElement && data.customer !== undefined) {
+          totalCustomersElement.textContent = data.customer;
+        }
+      })
+      .catch(error => {
+        console.error('Lỗi khi lấy số lượng khách hàng:', error);
+      });
+  });
+  // Gọi API để lấy số lượng dịch vụ
+  fetch('/api/service/count')
+    .then(response => response.json())
+    .then(data => {
+      const totalServices = data.count;
+      document.getElementById('total-services').textContent = totalServices;
+    })
+    .catch(error => {
+      console.error('Lỗi khi lấy số lượng dịch vụ:', error);
+      document.getElementById('total-services').textContent = 'Lỗi';
+    });
+  fetch('/api/booking/count')
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(data => {
+    document.getElementById('today-bookings').textContent = data.count;
+  })
+  .catch(error => {
+    console.error('Lỗi khi lấy số lịch hẹn hôm nay:', error);
+    document.getElementById('today-bookings').textContent = 'Lỗi';
+  });
+</script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.bundle.min.js"></script>
-<script>
-  const sidebar = document.getElementById('admin-sidebar');
-  const mainContent = document.getElementById('main-content');
-  const menuToggle = document.getElementById('menu-toggle');
-  const toggleText = document.querySelector('.toggle-text');
-
-  menuToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('show');
-       if (sidebar.classList.contains('show')) {
-          toggleText.textContent = 'Close';
-      } else {
-        toggleText.textContent = 'Menu';
-      }
-  });
-
-  document.addEventListener('click', (event) => {
-    if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && event.target !== menuToggle) {
-        sidebar.classList.remove('show');
-        toggleText.textContent = 'Menu';
-    }
-  });
-
-  function logout() {
-      sessionStorage.removeItem('isLoggedIn');
-      sessionStorage.removeItem('userRole');
-      sessionStorage.removeItem('username');
-      window.location.href='index.html';
-  }
-
-</script>
 </body>
 </html>

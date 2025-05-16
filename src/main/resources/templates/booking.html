@@ -294,10 +294,12 @@
             fetch(`/api/booking/check-slot?date=${dateStr}&time=${selectedTime}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.available) {
+                    if (data.alreadyBooked) {
+                        alert("Bạn đã có lịch hẹn trong khung giờ này.");
+                    } else if (!data.available) {
                         alert("Khung giờ này đã đầy. Vui lòng chọn khung giờ khác.");
                     } else {
-                        // Submit form nếu còn slot
+                        // Submit form nếu hợp lệ
                         document.getElementById("request").submit();
                     }
                 })
